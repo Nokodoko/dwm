@@ -49,7 +49,7 @@
 #define CLEANMASK(mask)         (mask & ~(numlockmask|LockMask) & (ShiftMask|ControlMask|Mod1Mask|Mod2Mask|Mod3Mask|Mod4Mask|Mod5Mask))
 #define INTERSECT(x,y,w,h,m)    (MAX(0, MIN((x)+(w),(m)->wx+(m)->ww) - MAX((x),(m)->wx)) \
                                * MAX(0, MIN((y)+(h),(m)->wy+(m)->wh) - MAX((y),(m)->wy)))
-#define SCRATCHTAGS             (SCRATCHPAD_TAG | BTOP_SCRATCHPAD_TAG | OLR_SCRATCHPAD_TAG)
+#define SCRATCHTAGS             (SCRATCHPAD_TAG | BTOP_SCRATCHPAD_TAG | OLR_SCRATCHPAD_TAG | AI_SCRATCHPAD_TAG)
 #define ISVISIBLE(C)            ((C->tags & SCRATCHTAGS) ? (C->tags & C->mon->scratchvisible) : (C->tags & C->mon->tagset[C->mon->seltags]))
 #define MOUSEMASK               (BUTTONMASK|PointerMotionMask)
 #define WIDTH(X)                ((X)->w + 2 * (X)->bw)
@@ -59,7 +59,7 @@
 
 /* enums */
 enum { CurNormal, CurResize, CurMove, CurLast }; /* cursor */
-enum { SchemeNorm, SchemeSel, SchemeOlr }; /* color schemes */
+enum { SchemeNorm, SchemeSel, SchemeOlr, SchemeAI }; /* color schemes */
 enum { NetSupported, NetWMName, NetWMState, NetWMCheck,
        NetWMFullscreen, NetActiveWindow, NetWMWindowType,
        NetWMWindowTypeDialog, NetClientList, NetLast }; /* EWMH atoms */
@@ -86,6 +86,7 @@ typedef struct Monitor Monitor;
 typedef struct Client Client;
 struct Client {
 	char name[256];
+	char bordertitle[64];
 	float mina, maxa;
 	int x, y, w, h;
 	int oldx, oldy, oldw, oldh;
@@ -144,6 +145,7 @@ typedef struct {
 	int iscentered;
 	int bw;
 	int borderscheme;
+	const char *bordertitle;
 } Rule;
 
 /* function declarations */
@@ -168,6 +170,7 @@ static void detachstack(Client *c);
 static Monitor *dirtomon(int dir);
 static void drawbar(Monitor *m);
 static void drawbars(void);
+static void drawbordertitle(Client *c);
 static void enternotify(XEvent *e);
 static void expose(XEvent *e);
 static void focus(Client *c);
@@ -294,6 +297,7 @@ applyrules(Client *c)
 	c->isfloating = 0;
 	c->tags = 0;
 	c->borderscheme = -1;
+	c->bordertitle[0] = '\0';
 	XGetClassHint(dpy, c->win, &ch);
 	class    = ch.res_class ? ch.res_class : broken;
 	instance = ch.res_name  ? ch.res_name  : broken;
@@ -311,6 +315,8 @@ applyrules(Client *c)
 				c->bw = c->oldbw = r->bw;
 			if (r->borderscheme >= 0)
 				c->borderscheme = r->borderscheme;
+			if (r->bordertitle)
+				strncpy(c->bordertitle, r->bordertitle, sizeof(c->bordertitle) - 1);
 			for (m = mons; m && m->num != r->monitor; m = m->next);
 			if (m)
 				c->mon = m;
@@ -770,6 +776,48 @@ drawbars(void)
 }
 
 void
+drawbordertitle(Client *c)
+{
+	XftDraw *d;
+	XftColor color;
+	XRenderColor rendercolor;
+	int tw, th, pad;
+	int scm;
+
+	if (!c || c->bordertitle[0] == '\0' || c->bw == 0)
+		return;
+
+	scm = c->borderscheme >= 0 ? c->borderscheme : (c == selmon->sel ? SchemeSel : SchemeNorm);
+
+	/* Get text dimensions */
+	drw_font_getexts(drw->fonts, c->bordertitle, strlen(c->bordertitle), (unsigned int *)&tw, (unsigned int *)&th);
+
+	/* Create XftDraw on the root window to draw on client's border area */
+	d = XftDrawCreate(dpy, root, DefaultVisual(dpy, screen), DefaultColormap(dpy, screen));
+	if (!d)
+		return;
+
+	/* Set up the XftColor from scheme foreground */
+	rendercolor.red = scheme[scm][ColFg].color.red;
+	rendercolor.green = scheme[scm][ColFg].color.green;
+	rendercolor.blue = scheme[scm][ColFg].color.blue;
+	rendercolor.alpha = 0xFFFF;
+	XftColorAllocValue(dpy, DefaultVisual(dpy, screen), DefaultColormap(dpy, screen), &rendercolor, &color);
+
+	/* Calculate position: top-left of the border, with small padding */
+	pad = 2;
+
+	/* Draw the title on the top border */
+	XftDrawStringUtf8(d, &color, drw->fonts->xfont,
+		c->x - c->bw + pad,
+		c->y - c->bw + drw->fonts->h - 2,
+		(XftChar8 *)c->bordertitle, strlen(c->bordertitle));
+
+	XftColorFree(dpy, DefaultVisual(dpy, screen), DefaultColormap(dpy, screen), &color);
+	XftDrawDestroy(d);
+}
+
+void
 enternotify(XEvent *e)
 {
 	Client *c;
@@ -815,6 +863,7 @@ focus(Client *c)
 		grabbuttons(c, 1);
 		XSetWindowBorder(dpy, c->win, scheme[c->borderscheme >= 0 ? c->borderscheme : SchemeSel][ColBorder].pixel);
 		setfocus(c);
+		drawbordertitle(c);
 	} else {
 		XSetInputFocus(dpy, root, RevertToPointerRoot, CurrentTime);
 		XDeleteProperty(dpy, root, netatom[NetActiveWindow]);
@@ -1333,6 +1382,7 @@ resizeclient(Client *c, int x, int y, int w, int h)
 	XConfigureWindow(dpy, c->win, CWX|CWY|CWWidth|CWHeight|CWBorderWidth, &wc);
 	configure(c);
 	XSync(dpy, False);
+	drawbordertitle(c);
 }
 
 void
@@ -2216,6 +2266,8 @@ togglescratch(const Arg *arg)
 		scratchtag = BTOP_SCRATCHPAD_TAG;
 	else if (strcmp(class, "olr-scratchpad") == 0)
 		scratchtag = OLR_SCRATCHPAD_TAG;
+	else if (strcmp(class, "ai-scratchpad") == 0)
+		scratchtag = AI_SCRATCHPAD_TAG;
 
 	/* Find the scratchpad client on any monitor */
 	for (m = mons; m; m = m->next) {
@@ -2264,6 +2316,11 @@ togglescratch(const Arg *arg)
 			c->x = selmon->wx;
 			c->y = selmon->wy;
 		} else if (scratchtag == OLR_SCRATCHPAD_TAG) {
+			c->w = 53 * 9;
+			c->h = selmon->wh;
+			c->x = selmon->wx + selmon->ww - c->w;
+			c->y = selmon->wy;
+		} else if (scratchtag == AI_SCRATCHPAD_TAG) {
 			c->w = 53 * 9;
 			c->h = selmon->wh;
 			c->x = selmon->wx + selmon->ww - c->w;

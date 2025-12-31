@@ -13,30 +13,34 @@ static const char col_gray3[] = "#5F5F00";
 static const char col_gray4[] = "#00FF00";
 static const char col_cyan[] = "#000000";
 static const char col_teal[] = "#0088AA";
+static const char col_green[] = "#00AA44";
 static const char *colors[][3]      = {
 	/*               fg         bg         border   */
 	[SchemeNorm] = { col_gray3, col_gray1, col_gray2 },
 	[SchemeSel]  = { col_gray4, col_cyan,  col_cyan  },
 	[SchemeOlr]  = { col_gray3, col_gray1, col_teal  },
+	[SchemeAI]   = { col_gray3, col_gray1, col_green },
 };
 
 /* tagging */
-static const char *tags[] = { ">_", "(-.x)", "~>", "4", "5", "6", "7", "8", "9", "SP", "SP2", "OLR" };
-#define SCRATCHPAD_TAG (1 << (LENGTH(tags) - 3))
-#define BTOP_SCRATCHPAD_TAG (1 << (LENGTH(tags) - 2))
-#define OLR_SCRATCHPAD_TAG (1 << (LENGTH(tags) - 1))
+static const char *tags[] = { ">_", "(-.x)", "~>", "4", "5", "6", "7", "8", "9", "SP", "SP2", "OLR", "AI" };
+#define SCRATCHPAD_TAG (1 << (LENGTH(tags) - 4))
+#define BTOP_SCRATCHPAD_TAG (1 << (LENGTH(tags) - 3))
+#define OLR_SCRATCHPAD_TAG (1 << (LENGTH(tags) - 2))
+#define AI_SCRATCHPAD_TAG (1 << (LENGTH(tags) - 1))
 
 static const Rule rules[] = {
 	/* xprop(1):
 	 * 	WM_CLASS(STRING) = instance, class
 	 * 	WM_NAME(STRING) = title
 	 */
-	/* class              instance  title  tags mask              isfloating  monitor  iscentered  bw  borderscheme */
-    {"Gimp",              NULL,     NULL,  0,                     1,          -1,      0,          -1, -1},
-    {"wezterm-lf",        NULL,     NULL,  0,                     1,          -1,      1,          -1, -1},
-    {"scratchpad",        NULL,     NULL,  SCRATCHPAD_TAG,        1,          -1,      0,          -1, -1},
-    {"btop-scratchpad",   NULL,     NULL,  BTOP_SCRATCHPAD_TAG,   1,          -1,      0,          -1, -1},
-    {"olr-scratchpad",    NULL,     NULL,  OLR_SCRATCHPAD_TAG,    1,          -1,      0,           1, SchemeOlr},
+	/* class              instance  title  tags mask              isfloating  monitor  iscentered  bw  borderscheme  bordertitle */
+    {"Gimp",              NULL,     NULL,  0,                     1,          -1,      0,          -1, -1,           NULL},
+    {"wezterm-lf",        NULL,     NULL,  0,                     1,          -1,      1,           1, SchemeOlr,    "lf"},
+    {"scratchpad",        NULL,     NULL,  SCRATCHPAD_TAG,        1,          -1,      0,          -1, -1,           NULL},
+    {"btop-scratchpad",   NULL,     NULL,  BTOP_SCRATCHPAD_TAG,   1,          -1,      0,          -1, -1,           NULL},
+    {"olr-scratchpad",    NULL,     NULL,  OLR_SCRATCHPAD_TAG,    1,          -1,      0,           1, SchemeOlr,    "olr"},
+    {"ai-scratchpad",     NULL,     NULL,  AI_SCRATCHPAD_TAG,     1,          -1,      0,           1, SchemeAI,     "AI"},
 };
 
 /* layout(s) */
@@ -82,6 +86,7 @@ static const char *lf[]  = { "wezterm", "start", "--class", "wezterm-lf", "--", 
 static const char *scratchpadcmd[] = {"wezterm", "start", "--class", "scratchpad", NULL};
 static const char *btopscratchpadcmd[] = {"wezterm", "start", "--class", "btop-scratchpad", "--", "btop", NULL};
 static const char *olrscratchpadcmd[] = {"wezterm", "start", "--class", "olr-scratchpad", "--", "/usr/local/bin/olr", NULL};
+static const char *aiscratchpadcmd[] = {"wezterm", "start", "--class", "ai-scratchpad", "--", "/home/n0ko/misc/hostlister.sh", NULL};
 static const char *scrot_precision[] = {
     "scrot", "-s", "-e", "xclip -selection clipboard -t image/png -i $f &",
     "sleep", "1", "notify-send", "ScreenShot Precision", NULL
@@ -92,6 +97,7 @@ static const Key keys[] = {
 	{ Mod1Mask,                     XK_s,      togglescratch,  {.v = scratchpadcmd } },
 	{ Mod1Mask,                     XK_b,      togglescratch,  {.v = btopscratchpadcmd } },
 	{ Mod1Mask,                     XK_o,      togglescratch,  {.v = olrscratchpadcmd } },
+	{ Mod1Mask,                     XK_a,      togglescratch,  {.v = aiscratchpadcmd } },
 	{ MODKEY,                       XK_p,      spawn,          {.v = dmenucmd } },
 	{ MODKEY,                       XK_x,      spawn,          {.v = lyxcmd } },
 	{ MODKEY|ShiftMask,             XK_x,      spawn,          {.v = killcmd } },
