@@ -2,6 +2,7 @@
 
 /* appearance */
 static const unsigned int borderpx  = 1;        /* border pixel of windows */
+static const unsigned int gappx     = 2;        /* gap pixel between windows */
 static const unsigned int snap      = 32;       /* snap pixel */
 static const int showbar            = 1;        /* 0 means no bar */
 static const int topbar             = 1;        /* 0 means bottom bar */
@@ -12,12 +13,13 @@ static const char col_gray2[] = "#000000";
 static const char col_gray3[] = "#5F5F00";
 static const char col_gray4[] = "#00FF00";
 static const char col_cyan[] = "#000000";
+static const char col_lightblue[] = "#ADD8E6";
 static const char col_teal[] = "#0088AA";
 static const char col_green[] = "#00AA44";
 static const char *colors[][3]      = {
 	/*               fg         bg         border   */
 	[SchemeNorm] = { col_gray3, col_gray1, col_gray2 },
-	[SchemeSel]  = { col_gray4, col_cyan,  col_cyan  },
+	[SchemeSel]  = { col_gray4, col_cyan,  col_lightblue  },
 	[SchemeOlr]  = { col_gray3, col_gray1, col_teal  },
 	[SchemeAI]   = { col_gray3, col_gray1, col_green },
 };
@@ -41,6 +43,19 @@ static const Rule rules[] = {
     {"btop-scratchpad",   NULL,     NULL,  BTOP_SCRATCHPAD_TAG,   1,          -1,      0,          -1, -1,           NULL},
     {"olr-scratchpad",    NULL,     NULL,  OLR_SCRATCHPAD_TAG,    1,          -1,      0,           1, SchemeOlr,    "olr"},
     {"ai-scratchpad",     NULL,     NULL,  AI_SCRATCHPAD_TAG,     1,          -1,      0,           1, SchemeAI,     "AI"},
+    {"st",                    NULL,     NULL,  1,                     0,          0,       1,          -1, -1,           NULL},
+    {"wireshark",             NULL,     NULL,  1,                     0,          0,       -1,         -1, -1,           NULL},
+    {"Slack",                 NULL,     NULL,  1 << 7,                0,          -1,      0,          -1, -1,           NULL},
+    {"Teams",                 NULL,     NULL,  1 << 1,                0,          -1,      0,          -1, -1,           NULL},
+    {"mpv",                   NULL,     NULL,  1 << 2,                0,          -1,      0,          -1, -1,           NULL},
+    {"firefox",               NULL,     NULL,  1 << 2,                0,          -1,      0,          -1, -1,           NULL},
+    {"vivaldi-bin",           NULL,     NULL,  1 << 6,                0,          -1,      0,          -1, -1,           NULL},
+    {"chromium",              NULL,     NULL,  1 << 2,                0,          -1,      0,          -1, -1,           NULL},
+    {"qutebrowser",           NULL,     NULL,  1 << 6,                0,          -1,      0,          -1, -1,           NULL},
+    {"Google Chrome",         NULL,     NULL,  1 << 3,                0,          -1,      0,          -1, -1,           NULL},
+    {"Electron",              NULL,     NULL,  1 << 4,                0,          -1,      0,          -1, -1,           NULL},
+    {"discord",               NULL,     NULL,  1 << 4,                0,          -1,      0,          -1, -1,           NULL},
+
 };
 
 /* layout(s) */
@@ -80,6 +95,9 @@ static const char *pavucontrol[]  = { "pavucontrol", NULL };
 static const char *dhp[]  = { "dhp.zsh", NULL };
 static const char *mouseOn[]  = { "touchpadOn.lua", NULL };
 static const char *mouseOff[]  = { "touchpadOff.lua", NULL };
+static const char *volumeUp[]  = { "~/scripts/volume.sh up", NULL };
+static const char *volumeDown[]  = { "~/scripts/volume.sh down", NULL };
+static const char *volumeMute[]  = { "~/scripts/volume.sh mute", NULL };
 static const char *cal[]  = { "wezterm", "-e", "calcurse", NULL };
 static const char *top[]  = { "wezterm", "-e", "btop", NULL };
 static const char *lf[]  = { "wezterm", "start", "--class", "wezterm-lf", "--", "lf", NULL };
@@ -105,6 +123,9 @@ static const Key keys[] = {
 	{ MODKEY,                       XK_m,      spawn,          {.v = pavucontrol } },
 	{ MODKEY,                       XK_o,      spawn,          {.v = mouseOff } },
 	{ MODKEY|ShiftMask,             XK_o,      spawn,          {.v = mouseOn } },
+	{ MODKEY|ControlMask,           XK_n,      spawn,          {.v = volumeUp } },
+	{ MODKEY|ControlMask,           XK_b,      spawn,          {.v = volumeDown } },
+	{ MODKEY|ControlMask,           XK_v,      spawn,          {.v = volumeMute } },
 	{ MODKEY|ShiftMask,             XK_p,      spawn,          {.v = pass} },
 	{ Mod1Mask|ShiftMask,           XK_t,      spawn,          {.v = top} },
   { Mod1Mask|ControlMask,         XK_Down,   spawn,          {.v = dhp } },

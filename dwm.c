@@ -1155,15 +1155,15 @@ manage(Window w, XWindowAttributes *wa)
 	}
 
 	if (c->tags & SCRATCHPAD_TAG) {
-		c->x = selmon->wx;
+		c->w = selmon->ww * 0.75;
+		c->x = selmon->wx + selmon->ww / 8;
 		c->y = selmon->wy;
-		c->w = selmon->ww;
 		c->h = selmon->wh * 0.5;
 		resizeclient(c, c->x, c->y, c->w, c->h);
 	} else if (c->tags & BTOP_SCRATCHPAD_TAG) {
-		c->x = selmon->wx;
+		c->w = selmon->ww * 0.75;
+		c->x = selmon->wx + selmon->ww / 8;
 		c->y = selmon->wy;
-		c->w = selmon->ww;
 		c->h = 750; /* taller for btop */
 		resizeclient(c, c->x, c->y, c->w, c->h);
 	} else if (c->tags & OLR_SCRATCHPAD_TAG) {
@@ -1783,20 +1783,20 @@ tile(Monitor *m)
 		return;
 
 	if (n > m->nmaster)
-		mw = m->nmaster ? m->ww * m->mfact : 0;
+		mw = m->nmaster ? (m->ww - gappx) * m->mfact : 0;
 	else
 		mw = m->ww;
 	for (i = my = ty = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), i++)
 		if (i < m->nmaster) {
-			h = (m->wh - my) / (MIN(n, m->nmaster) - i);
+			h = (m->wh - my - gappx) / (MIN(n, m->nmaster) - i);
 			resize(c, m->wx, m->wy + my, mw - (2*c->bw), h - (2*c->bw), 0);
 			if (my + HEIGHT(c) < m->wh)
-				my += HEIGHT(c);
+				my += HEIGHT(c) + gappx;
 		} else {
-			h = (m->wh - ty) / (n - i);
-			resize(c, m->wx + mw, m->wy + ty, m->ww - mw - (2*c->bw), h - (2*c->bw), 0);
+			h = (m->wh - ty - gappx) / (n - i);
+			resize(c, m->wx + mw + gappx, m->wy + ty, m->ww - mw - (2*c->bw) - gappx, h - (2*c->bw), 0);
 			if (ty + HEIGHT(c) < m->wh)
-				ty += HEIGHT(c);
+				ty += HEIGHT(c) + gappx;
 		}
 }
 
@@ -2306,14 +2306,14 @@ togglescratch(const Arg *arg)
 
 		/* Apply geometry */
 		if (scratchtag == SCRATCHPAD_TAG) {
-			c->w = selmon->ww;
+			c->w = selmon->ww * 0.75;
 			c->h = selmon->wh * 0.5;
-			c->x = selmon->wx;
+			c->x = selmon->wx + selmon->ww / 8;
 			c->y = selmon->wy;
 		} else if (scratchtag == BTOP_SCRATCHPAD_TAG) {
-			c->w = selmon->ww;
+			c->w = selmon->ww * 0.75;
 			c->h = selmon->wh * 0.5;
-			c->x = selmon->wx;
+			c->x = selmon->wx + selmon->ww / 8;
 			c->y = selmon->wy;
 		} else if (scratchtag == OLR_SCRATCHPAD_TAG) {
 			c->w = 53 * 9;
