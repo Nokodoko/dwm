@@ -2260,7 +2260,7 @@ togglescratch(const Arg *arg)
 	unsigned int scratchtag = 0;
 	const char *class = ((const char **)arg->v)[3];
 
-	if (strcmp(class, "scratchpad") == 0)
+	if (strcmp(class, "term-scratchpad") == 0)
 		scratchtag = SCRATCHPAD_TAG;
 	else if (strcmp(class, "btop-scratchpad") == 0)
 		scratchtag = BTOP_SCRATCHPAD_TAG;

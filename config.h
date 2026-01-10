@@ -39,7 +39,7 @@ static const Rule rules[] = {
 	/* class              instance  title  tags mask              isfloating  monitor  iscentered  bw  borderscheme  bordertitle */
     {"Gimp",              NULL,     NULL,  0,                     1,          -1,      0,          -1, -1,           NULL},
     {"wezterm-lf",        NULL,     NULL,  0,                     1,          -1,      1,           1, SchemeOlr,    "lf"},
-    {"scratchpad",        NULL,     NULL,  SCRATCHPAD_TAG,        1,          -1,      0,          -1, -1,           NULL},
+    {"term-scratchpad",   NULL,     NULL,  SCRATCHPAD_TAG,        1,          -1,      0,          -1, -1,           NULL},
     {"btop-scratchpad",   NULL,     NULL,  BTOP_SCRATCHPAD_TAG,   1,          -1,      0,          -1, -1,           NULL},
     {"olr-scratchpad",    NULL,     NULL,  OLR_SCRATCHPAD_TAG,    1,          -1,      0,           1, SchemeOlr,    "olr"},
     {"ai-scratchpad",     NULL,     NULL,  AI_SCRATCHPAD_TAG,     1,          -1,      0,           1, SchemeAI,     "AI"},
@@ -101,7 +101,7 @@ static const char *volumeMute[]  = { "~/scripts/volume.sh mute", NULL };
 static const char *cal[]  = { "wezterm", "-e", "calcurse", NULL };
 static const char *top[]  = { "wezterm", "-e", "btop", NULL };
 static const char *lf[]  = { "wezterm", "start", "--class", "wezterm-lf", "--", "lf", NULL };
-static const char *scratchpadcmd[] = {"wezterm", "start", "--class", "scratchpad", NULL};
+static const char *scratchpadcmd[] = {"wezterm", "start", "--class", "term-scratchpad", NULL};
 static const char *btopscratchpadcmd[] = {"wezterm", "start", "--class", "btop-scratchpad", "--", "btop", NULL};
 static const char *olrscratchpadcmd[] = {"wezterm", "start", "--class", "olr-scratchpad", "--", "/usr/local/bin/olr", NULL};
 static const char *aiscratchpadcmd[] = {"wezterm", "start", "--class", "ai-scratchpad", "--", "/home/n0ko/misc/hostlister.sh", NULL};
