@@ -1,5 +1,7 @@
 /* See LICENSE file for copyright and license details. */
 
+#include <X11/XF86keysym.h>
+
 /* appearance */
 static const unsigned int borderpx  = 1;        /* border pixel of windows */
 static const unsigned int gappx     = 2;        /* gap pixel between windows */
@@ -49,7 +51,7 @@ static const Rule rules[] = {
     {"Teams",                 NULL,     NULL,  1 << 1,                0,          -1,      0,          -1, -1,           NULL},
     {"mpv",                   NULL,     NULL,  1 << 2,                0,          -1,      0,          -1, -1,           NULL},
     {"firefox",               NULL,     NULL,  1 << 2,                0,          -1,      0,          -1, -1,           NULL},
-    {"vivaldi-bin",           NULL,     NULL,  1 << 6,                0,          -1,      0,          -1, -1,           NULL},
+    {"Vivaldi-flatpak",       NULL,     NULL,  1 << 2,                0,          -1,      0,          -1, -1,           NULL},
     {"chromium",              NULL,     NULL,  1 << 2,                0,          -1,      0,          -1, -1,           NULL},
     {"qutebrowser",           NULL,     NULL,  1 << 6,                0,          -1,      0,          -1, -1,           NULL},
     {"Google Chrome",         NULL,     NULL,  1 << 3,                0,          -1,      0,          -1, -1,           NULL},
@@ -109,6 +111,10 @@ static const char *scrot_precision[] = {
     "scrot", "-s", "-e", "xclip -selection clipboard -t image/png -i $f &",
     "sleep", "1", "notify-send", "ScreenShot Precision", NULL
 };
+static const char *slockcmd[] = { "/home/n0ko/scripts/slock-dpms.sh", NULL };
+static const char *brightnessUp[] = { "/home/n0ko/scripts/brightnessUp.sh", NULL };
+static const char *brightnessDown[] = { "/home/n0ko/scripts/brightnessDown.sh", NULL };
+static const char *brightnessMid[] = { "/home/n0ko/scripts/brightnessMid.sh", NULL };
 
 static const Key keys[] = {
 	/* modifier                     key        function        argument */
@@ -141,6 +147,10 @@ static const Key keys[] = {
 	{ MODKEY,                       XK_d,      incnmaster,     {.i = -1 } },
 	{ MODKEY,                       XK_h,      setmfact,       {.f = -0.05} },
 	{ MODKEY,                       XK_l,      setmfact,       {.f = +0.05} },
+	{ MODKEY|ControlMask,           XK_l,      spawn,          {.v = slockcmd } },
+	{ 0,                            XF86XK_MonBrightnessUp,   spawn, {.v = brightnessUp } },
+	{ 0,                            XF86XK_MonBrightnessDown, spawn, {.v = brightnessDown } },
+	{ MODKEY|ControlMask,           XK_m,      spawn,          {.v = brightnessMid } },
 	{ MODKEY,                       XK_Return, zoom,           {0} },
 	{ MODKEY,                       XK_Tab,    view,           {0} },
 	{ Mod4Mask|ShiftMask,           XK_q,      killclient,     {0} },
