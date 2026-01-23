@@ -6,7 +6,10 @@ static const unsigned int gappx     = 2;        /* gap pixel between windows */
 static const unsigned int snap      = 32;       /* snap pixel */
 static const int showbar            = 1;        /* 0 means no bar */
 static const int topbar             = 1;        /* 0 means bottom bar */
-static const char *fonts[] = {"VictorMono Nerd Font Mono:style=Italic:size=15"};
+static const char *fonts[] = {
+	"VictorMono Nerd Font Mono:style=Italic:size=15",
+	"Symbols Nerd Font:size=14"
+};
 static const char dmenufont[] = "VictorMono Nerd Font Mono:style=Italic:size=15";
 static const char col_gray1[] = "#000000";
 static const char col_gray2[] = "#000000";
@@ -50,6 +53,7 @@ static const Rule rules[] = {
     {"mpv",                   NULL,     NULL,  1 << 2,                0,          -1,      0,          -1, -1,           NULL},
     {"firefox",               NULL,     NULL,  1 << 2,                0,          -1,      0,          -1, -1,           NULL},
     {"vivaldi-bin",           NULL,     NULL,  1 << 6,                0,          -1,      0,          -1, -1,           NULL},
+    {"Vivaldi-flatpak",       NULL,     NULL,  1 << 2,                0,          -1,      0,          -1, -1,           NULL},
     {"chromium",              NULL,     NULL,  1 << 2,                0,          -1,      0,          -1, -1,           NULL},
     {"qutebrowser",           NULL,     NULL,  1 << 6,                0,          -1,      0,          -1, -1,           NULL},
     {"Google Chrome",         NULL,     NULL,  1 << 3,                0,          -1,      0,          -1, -1,           NULL},
