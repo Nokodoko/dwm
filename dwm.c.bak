@@ -49,7 +49,7 @@
 #define CLEANMASK(mask)         (mask & ~(numlockmask|LockMask) & (ShiftMask|ControlMask|Mod1Mask|Mod2Mask|Mod3Mask|Mod4Mask|Mod5Mask))
 #define INTERSECT(x,y,w,h,m)    (MAX(0, MIN((x)+(w),(m)->wx+(m)->ww) - MAX((x),(m)->wx)) \
                                * MAX(0, MIN((y)+(h),(m)->wy+(m)->wh) - MAX((y),(m)->wy)))
-#define SCRATCHTAGS             (SCRATCHPAD_TAG | BTOP_SCRATCHPAD_TAG | OLR_SCRATCHPAD_TAG | AI_SCRATCHPAD_TAG | STEAM_SCRATCHPAD_TAG)
+#define SCRATCHTAGS             (SCRATCHPAD_TAG | BTOP_SCRATCHPAD_TAG | OLR_SCRATCHPAD_TAG | AI_SCRATCHPAD_TAG)
 #define ISVISIBLE(C)            ((C->tags & SCRATCHTAGS) ? (C->tags & C->mon->scratchvisible) : (C->tags & C->mon->tagset[C->mon->seltags]))
 #define MOUSEMASK               (BUTTONMASK|PointerMotionMask)
 #define WIDTH(X)                ((X)->w + 2 * (X)->bw)
@@ -59,7 +59,7 @@
 
 /* enums */
 enum { CurNormal, CurResize, CurMove, CurLast }; /* cursor */
-enum { SchemeNorm, SchemeSel, SchemeOlr, SchemeAI, SchemeSteam }; /* color schemes */
+enum { SchemeNorm, SchemeSel, SchemeOlr, SchemeAI }; /* color schemes */
 enum { NetSupported, NetWMName, NetWMState, NetWMCheck,
        NetWMFullscreen, NetActiveWindow, NetWMWindowType,
        NetWMWindowTypeDialog, NetClientList, NetLast }; /* EWMH atoms */
@@ -1306,17 +1306,14 @@ manage(Window w, XWindowAttributes *wa)
 	attachstack(c);
 	XChangeProperty(dpy, root, netatom[NetClientList], XA_WINDOW, 32, PropModeAppend,
 		(unsigned char *) &(c->win), 1);
+	XMoveResizeWindow(dpy, c->win, c->x + 2 * sw, c->y, c->w, c->h); /* some windows require this */
 	setclientstate(c, NormalState);
 	if (c->mon == selmon)
 		unfocus(selmon->sel, 0);
 	c->mon->sel = c;
-	if (!c->isfloating)
-		arrange(c->mon);
+	arrange(c->mon);
 	XMapWindow(dpy, c->win);
-	XSync(dpy, False);
-	if (!c->isfloating)
-		arrange(c->mon);
-	focus(c);
+	focus(NULL);
 
 	if(c->iscentered) {
 		c->x = selmon->wx + (selmon->ww - WIDTH(c)) / 2;
@@ -1334,7 +1331,7 @@ manage(Window w, XWindowAttributes *wa)
 		c->w = selmon->ww * 0.75;
 		c->x = selmon->wx + selmon->ww / 8;
 		c->y = selmon->wy;
-		c->h = selmon->wh * 0.5;
+		c->h = 750; /* taller for btop */
 		resizeclient(c, c->x, c->y, c->w, c->h);
 	} else if (c->tags & OLR_SCRATCHPAD_TAG) {
 		c->x = selmon->wx;
@@ -1342,24 +1339,6 @@ manage(Window w, XWindowAttributes *wa)
 		c->w = 53 * 9; /* 53 columns * ~9px per char (monospace) */
 		c->h = selmon->wh;
 		resizeclient(c, c->x, c->y, c->w, c->h);
-	} else if (c->tags & AI_SCRATCHPAD_TAG) {
-		c->w = 53 * 9;
-		c->x = selmon->wx + selmon->ww - c->w;
-		c->y = selmon->wy;
-		c->h = selmon->wh;
-		resizeclient(c, c->x, c->y, c->w, c->h);
-	} else if (c->tags & STEAM_SCRATCHPAD_TAG) {
-		c->w = 53 * 9;
-		c->x = selmon->wx + selmon->ww - c->w;
-		c->y = selmon->wy;
-		c->h = selmon->wh;
-		resizeclient(c, c->x, c->y, c->w, c->h);
-	}
-
-	/* Ensure scratchpads get focus after positioning (counteract enternotify) */
-	if (c->tags & SCRATCHTAGS) {
-		focus(c);
-		restack(selmon);
 	}
 }
 
@@ -2471,8 +2450,6 @@ togglescratch(const Arg *arg)
 		scratchtag = OLR_SCRATCHPAD_TAG;
 	else if (strcmp(class, "ai-scratchpad") == 0)
 		scratchtag = AI_SCRATCHPAD_TAG;
-	else if (strcmp(class, "stm-scratchpad") == 0)
-		scratchtag = STEAM_SCRATCHPAD_TAG;
 
 	/* Find the scratchpad client on any monitor */
 	for (m = mons; m; m = m->next) {
@@ -2494,8 +2471,6 @@ togglescratch(const Arg *arg)
 	if (selmon->scratchvisible & scratchtag) {
 		/* Currently visible on this monitor, hide it */
 		selmon->scratchvisible &= ~scratchtag;
-		arrange(selmon);
-		return;
 	} else {
 		/* Not visible, show it */
 		selmon->scratchvisible |= scratchtag;
@@ -2532,14 +2507,10 @@ togglescratch(const Arg *arg)
 			c->h = selmon->wh;
 			c->x = selmon->wx + selmon->ww - c->w;
 			c->y = selmon->wy;
-		} else if (scratchtag == STEAM_SCRATCHPAD_TAG) {
-			c->w = 53 * 9;
-			c->h = selmon->wh;
-			c->x = selmon->wx + selmon->ww - c->w;
-			c->y = selmon->wy;
 		}
 		resizeclient(c, c->x, c->y, c->w, c->h);
 		focus(c);
 		restack(selmon);
 	}
+	arrange(selmon);
 }
