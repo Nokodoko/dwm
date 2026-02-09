@@ -117,9 +117,7 @@ static const char *btopscratchpadcmd[] = {"wezterm", "start", "--class", "btop-s
 static const char *olrscratchpadcmd[] = {"wezterm", "start", "--class", "olr-scratchpad", "--", "/usr/local/bin/olr", NULL};
 static const char *aiscratchpadcmd[] = {"wezterm", "start", "--class", "ai-scratchpad", "--", "/home/n0ko/misc/hostlister.sh", NULL};
 static const char *steamscratchpadcmd[] = {"wezterm", "start", "--class", "stm-scratchpad", "--", "/home/n0ko/scripts/steam_launcher.zsh", NULL};
-static const char *scrot_precision[] = {
-    "scrot", "-s", "-e", "xclip -selection clipboard -t image/png -i $f && notify-send 'Screenshot Precision' 'Copied to clipboard'", NULL
-};
+static const char *scrot_precision[] = { "/bin/sh", "-c", "scrot -s -e 'xclip -selection clipboard -t image/png -i $f && notify-send \"Screenshot Precision\" \"Copied to clipboard\"'", NULL };
 static const char *slockcmd[] = { "/home/n0ko/scripts/slock-dpms.sh", NULL };
 static const char *restartdwm[] = { "/home/n0ko/scripts/restart_dwm.sh", NULL };
 static const char *brightnessUp[] = { "/home/n0ko/scripts/brightnessUp.sh", NULL };
