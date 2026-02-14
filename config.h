@@ -29,12 +29,13 @@ static const char *colors[][3]      = {
 };
 
 /* tagging */
-static const char *tags[] = { ">_", "(-.x)", "~>", "4", "5", "6", "7", "8", "9", "SP", "SP2", "OLR", "AI", "STM" };
-#define SCRATCHPAD_TAG (1 << (LENGTH(tags) - 5))
-#define BTOP_SCRATCHPAD_TAG (1 << (LENGTH(tags) - 4))
-#define OLR_SCRATCHPAD_TAG (1 << (LENGTH(tags) - 3))
-#define AI_SCRATCHPAD_TAG (1 << (LENGTH(tags) - 2))
-#define STEAM_SCRATCHPAD_TAG (1 << (LENGTH(tags) - 1))
+static const char *tags[] = { ">_", "(-.x)", "~>", "4", "5", "6", "7", "8", "9", "SP", "SP2", "OLR", "AI", "STM", "SSH" };
+#define SCRATCHPAD_TAG (1 << (LENGTH(tags) - 6))
+#define BTOP_SCRATCHPAD_TAG (1 << (LENGTH(tags) - 5))
+#define OLR_SCRATCHPAD_TAG (1 << (LENGTH(tags) - 4))
+#define AI_SCRATCHPAD_TAG (1 << (LENGTH(tags) - 3))
+#define STEAM_SCRATCHPAD_TAG (1 << (LENGTH(tags) - 2))
+#define SSH_SCRATCHPAD_TAG (1 << (LENGTH(tags) - 1))
 
 static const Rule rules[] = {
 	/* xprop(1):
@@ -49,6 +50,7 @@ static const Rule rules[] = {
     {"olr-scratchpad",    NULL,     NULL,  OLR_SCRATCHPAD_TAG,    1,          -1,      1,           1, SchemeOlr,    "olr"},
     {"ai-scratchpad",     NULL,     NULL,  AI_SCRATCHPAD_TAG,     1,          -1,      0,           1, SchemeAI,     "AI"},
     {"stm-scratchpad",    NULL,     NULL,  STEAM_SCRATCHPAD_TAG,  1,          -1,      1,           1, SchemeSteam,  "Steam"},
+    {"ssh-scratchpad",    NULL,     NULL,  SSH_SCRATCHPAD_TAG,    1,          -1,      0,          -1, -1,           NULL},
     {"St",                    NULL,     NULL,  1,                     0,          0,       1,          -1, -1,           NULL},
     {"wireshark",             NULL,     NULL,  1,                     0,          0,       -1,         -1, -1,           NULL},
     {"Slack",                 NULL,     NULL,  1 << 7,                0,          -1,      0,          -1, -1,           NULL},
@@ -117,13 +119,16 @@ static const char *btopscratchpadcmd[] = {"wezterm", "start", "--class", "btop-s
 static const char *olrscratchpadcmd[] = {"wezterm", "start", "--class", "olr-scratchpad", "--", "/usr/local/bin/olr", NULL};
 static const char *aiscratchpadcmd[] = {"wezterm", "start", "--class", "ai-scratchpad", "--", "/home/n0ko/misc/hostlister.sh", NULL};
 static const char *steamscratchpadcmd[] = {"wezterm", "start", "--class", "stm-scratchpad", "--", "/home/n0ko/scripts/steam_launcher.zsh", NULL};
+static const char *sshscratchpadcmd[] = {"wezterm", "start", "--class", "ssh-scratchpad", "--", "ssh", "-t", "base", "zellij", "attach", "-c", "default", NULL};
 static const char *scrot_precision[] = { "/bin/sh", "-c", "scrot -s -e 'xclip -selection clipboard -t image/png -i $f && notify-send \"Screenshot Precision\" \"Copied to clipboard\"'", NULL };
 static const char *slockcmd[] = { "/home/n0ko/scripts/slock-dpms.sh", NULL };
 static const char *restartdwm[] = { "/home/n0ko/scripts/restart_dwm.sh", NULL };
+static const char *restartdwm_wt[] = { "/home/n0ko/scripts/restart_dwm_worktree.sh", NULL };
 static const char *brightnessUp[] = { "/home/n0ko/scripts/brightnessUp.sh", NULL };
 static const char *brightnessDown[] = { "/home/n0ko/scripts/brightnessDown.sh", NULL };
 static const char *brightnessMid[] = { "/home/n0ko/scripts/brightnessMid.sh", NULL };
 static const char *xboxConnect[] = { "/home/n0ko/scripts/xbox.sh", NULL };
+static const char *tabkillcmd[] = { "/home/n0ko/programming/python_projects/scripts/tabkill.py", NULL };
 
 static const Key keys[] = {
 	/* modifier                     key        function        argument */
@@ -132,8 +137,11 @@ static const Key keys[] = {
 	{ Mod1Mask,                     XK_o,      togglescratch,  {.v = olrscratchpadcmd } },
 	{ Mod1Mask,                     XK_a,      togglescratch,  {.v = aiscratchpadcmd } },
         { Mod1Mask,                     XK_r,      togglescratch,  {.v = steamscratchpadcmd } },
+	{ Mod1Mask|ShiftMask,           XK_s,      togglescratch,  {.v = sshscratchpadcmd } },
+	{ Mod1Mask|ShiftMask,           XK_x,      spawn,          {.v = tabkillcmd } },
 	{ Mod1Mask,                     XK_c,      spawn,          {.v = xboxConnect } },
 	{ MODKEY,                       XK_r,      spawn,          {.v = restartdwm } },
+	{ MODKEY|ShiftMask,             XK_r,      spawn,          {.v = restartdwm_wt } },
 	{ MODKEY,                       XK_p,      spawn,          {.v = dmenucmd } },
 	{ MODKEY,                       XK_x,      spawn,          {.v = lyxcmd } },
 	{ MODKEY|ShiftMask,             XK_x,      spawn,          {.v = killcmd } },
