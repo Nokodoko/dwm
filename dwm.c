@@ -49,7 +49,7 @@
 #define CLEANMASK(mask)         (mask & ~(numlockmask|LockMask) & (ShiftMask|ControlMask|Mod1Mask|Mod2Mask|Mod3Mask|Mod4Mask|Mod5Mask))
 #define INTERSECT(x,y,w,h,m)    (MAX(0, MIN((x)+(w),(m)->wx+(m)->ww) - MAX((x),(m)->wx)) \
                                * MAX(0, MIN((y)+(h),(m)->wy+(m)->wh) - MAX((y),(m)->wy)))
-#define SCRATCHTAGS             (SCRATCHPAD_TAG | BTOP_SCRATCHPAD_TAG | OLR_SCRATCHPAD_TAG | AI_SCRATCHPAD_TAG | STEAM_SCRATCHPAD_TAG)
+#define SCRATCHTAGS             (SCRATCHPAD_TAG | BTOP_SCRATCHPAD_TAG | OLR_SCRATCHPAD_TAG | AI_SCRATCHPAD_TAG | STEAM_SCRATCHPAD_TAG | SSH_SCRATCHPAD_TAG)
 #define ISVISIBLE(C)            ((C->tags & SCRATCHTAGS) ? (C->tags & C->mon->scratchvisible) : (C->tags & C->mon->tagset[C->mon->seltags]))
 #define MOUSEMASK               (BUTTONMASK|PointerMotionMask)
 #define WIDTH(X)                ((X)->w + 2 * (X)->bw)
@@ -2473,6 +2473,8 @@ togglescratch(const Arg *arg)
 		scratchtag = AI_SCRATCHPAD_TAG;
 	else if (strcmp(class, "stm-scratchpad") == 0)
 		scratchtag = STEAM_SCRATCHPAD_TAG;
+	else if (strcmp(class, "ssh-scratchpad") == 0)
+		scratchtag = SSH_SCRATCHPAD_TAG;
 
 	/* Find the scratchpad client on any monitor */
 	for (m = mons; m; m = m->next) {
@@ -2536,6 +2538,11 @@ togglescratch(const Arg *arg)
 			c->w = 53 * 9;
 			c->h = selmon->wh;
 			c->x = selmon->wx + selmon->ww - c->w;
+			c->y = selmon->wy;
+		} else if (scratchtag == SSH_SCRATCHPAD_TAG) {
+			c->w = selmon->ww * 0.75;
+			c->h = selmon->wh * 0.5;
+			c->x = selmon->wx + selmon->ww / 8;
 			c->y = selmon->wy;
 		}
 		resizeclient(c, c->x, c->y, c->w, c->h);
