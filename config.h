@@ -45,6 +45,7 @@ static const Rule rules[] = {
 	/* class              instance  title  tags mask              isfloating  monitor  iscentered  bw  borderscheme  bordertitle */
     {"Gimp",              NULL,     NULL,  0,                     1,          -1,      0,          -1, -1,           NULL},
     {"wezterm-lf",        NULL,     NULL,  0,                     1,          -1,      1,           1, SchemeOlr,    "lf"},
+    {"wezterm-tabtiler",  NULL,     NULL,  0,                     1,          -1,      1,           1, SchemeOlr,    "tiles"},
     {"term-scratchpad",   NULL,     NULL,  SCRATCHPAD_TAG,        1,          -1,      0,          -1, -1,           NULL},
     {"btop-scratchpad",   NULL,     NULL,  BTOP_SCRATCHPAD_TAG,   1,          -1,      0,          -1, -1,           NULL},
     {"olr-scratchpad",    NULL,     NULL,  OLR_SCRATCHPAD_TAG,    1,          -1,      1,           1, SchemeOlr,    "olr"},
@@ -128,8 +129,8 @@ static const char *brightnessUp[] = { "/home/n0ko/scripts/brightnessUp.sh", NULL
 static const char *brightnessDown[] = { "/home/n0ko/scripts/brightnessDown.sh", NULL };
 static const char *brightnessMid[] = { "/home/n0ko/scripts/brightnessMid.sh", NULL };
 static const char *xboxConnect[] = { "/home/n0ko/scripts/xbox.sh", NULL };
-static const char *tabkillcmd[] = { "/home/n0ko/programming/python_projects/scripts/tabkill.py", NULL };
 static const char *vivaldileadercmd[] = { "/home/n0ko/.local/bin/vivaldi-leader.sh", NULL };
+static const char *dwmleadercmd[] = { "/home/n0ko/.local/bin/dwm-leader.sh", NULL };
 
 static const Key keys[] = {
 	/* modifier                     key        function        argument */
@@ -139,8 +140,8 @@ static const Key keys[] = {
 	{ Mod1Mask,                     XK_a,      togglescratch,  {.v = aiscratchpadcmd } },
         { Mod1Mask,                     XK_r,      togglescratch,  {.v = steamscratchpadcmd } },
 	{ Mod1Mask|ShiftMask,           XK_s,      togglescratch,  {.v = sshscratchpadcmd } },
-	{ Mod1Mask|ShiftMask,           XK_x,      spawn,          {.v = tabkillcmd } },
 	{ Mod1Mask|ControlMask,         XK_v,      spawn,          {.v = vivaldileadercmd } },
+	{ Mod1Mask,                     XK_t,      spawn,          {.v = dwmleadercmd } },
 	{ Mod1Mask,                     XK_c,      spawn,          {.v = xboxConnect } },
 	{ MODKEY,                       XK_r,      spawn,          {.v = restartdwm } },
 	{ MODKEY|ShiftMask,             XK_r,      spawn,          {.v = restartdwm_wt } },
