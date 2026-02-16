@@ -1,7 +1,9 @@
 /* See LICENSE file for copyright and license details. */
 
+#include <X11/XF86keysym.h>
+
 /* appearance */
-static const unsigned int borderpx  = 1;        /* border pixel of windows */
+static const unsigned int borderpx  = 2;        /* border pixel of windows */
 static const unsigned int gappx     = 2;        /* gap pixel between windows */
 static const unsigned int snap      = 32;       /* snap pixel */
 static const int showbar            = 1;        /* 0 means no bar */
@@ -9,27 +11,30 @@ static const int topbar             = 1;        /* 0 means bottom bar */
 static const char *fonts[] = {"VictorMono Nerd Font Mono:style=Italic:size=15"};
 static const char dmenufont[] = "VictorMono Nerd Font Mono:style=Italic:size=15";
 static const char col_gray1[] = "#000000";
-static const char col_gray2[] = "#000000";
+static const char col_gray2[] = "#333333";
 static const char col_gray3[] = "#5F5F00";
 static const char col_gray4[] = "#00FF00";
 static const char col_cyan[] = "#000000";
 static const char col_lightblue[] = "#ADD8E6";
 static const char col_teal[] = "#0088AA";
 static const char col_green[] = "#00AA44";
+static const char col_purple[] = "#9932CC";
 static const char *colors[][3]      = {
 	/*               fg         bg         border   */
 	[SchemeNorm] = { col_gray3, col_gray1, col_gray2 },
 	[SchemeSel]  = { col_gray4, col_cyan,  col_lightblue  },
 	[SchemeOlr]  = { col_gray3, col_gray1, col_teal  },
 	[SchemeAI]   = { col_gray3, col_gray1, col_green },
+	[SchemeSteam] = { col_gray3, col_gray1, col_purple },
 };
 
 /* tagging */
-static const char *tags[] = { ">_", "(-.x)", "~>", "4", "5", "6", "7", "8", "9", "SP", "SP2", "OLR", "AI" };
-#define SCRATCHPAD_TAG (1 << (LENGTH(tags) - 4))
-#define BTOP_SCRATCHPAD_TAG (1 << (LENGTH(tags) - 3))
-#define OLR_SCRATCHPAD_TAG (1 << (LENGTH(tags) - 2))
-#define AI_SCRATCHPAD_TAG (1 << (LENGTH(tags) - 1))
+static const char *tags[] = { ">_", "(-.x)", "~>", "4", "5", "6", "7", "8", "9", "SP", "SP2", "OLR", "AI", "STM" };
+#define SCRATCHPAD_TAG (1 << (LENGTH(tags) - 5))
+#define BTOP_SCRATCHPAD_TAG (1 << (LENGTH(tags) - 4))
+#define OLR_SCRATCHPAD_TAG (1 << (LENGTH(tags) - 3))
+#define AI_SCRATCHPAD_TAG (1 << (LENGTH(tags) - 2))
+#define STEAM_SCRATCHPAD_TAG (1 << (LENGTH(tags) - 1))
 
 static const Rule rules[] = {
 	/* xprop(1):
@@ -41,20 +46,23 @@ static const Rule rules[] = {
     {"wezterm-lf",        NULL,     NULL,  0,                     1,          -1,      1,           1, SchemeOlr,    "lf"},
     {"term-scratchpad",   NULL,     NULL,  SCRATCHPAD_TAG,        1,          -1,      0,          -1, -1,           NULL},
     {"btop-scratchpad",   NULL,     NULL,  BTOP_SCRATCHPAD_TAG,   1,          -1,      0,          -1, -1,           NULL},
-    {"olr-scratchpad",    NULL,     NULL,  OLR_SCRATCHPAD_TAG,    1,          -1,      0,           1, SchemeOlr,    "olr"},
+    {"olr-scratchpad",    NULL,     NULL,  OLR_SCRATCHPAD_TAG,    1,          -1,      1,           1, SchemeOlr,    "olr"},
     {"ai-scratchpad",     NULL,     NULL,  AI_SCRATCHPAD_TAG,     1,          -1,      0,           1, SchemeAI,     "AI"},
-    {"st",                    NULL,     NULL,  1,                     0,          0,       1,          -1, -1,           NULL},
+    {"stm-scratchpad",    NULL,     NULL,  STEAM_SCRATCHPAD_TAG,  1,          -1,      1,           1, SchemeSteam,  "Steam"},
+    {"St",                    NULL,     NULL,  1,                     0,          0,       1,          -1, -1,           NULL},
     {"wireshark",             NULL,     NULL,  1,                     0,          0,       -1,         -1, -1,           NULL},
     {"Slack",                 NULL,     NULL,  1 << 7,                0,          -1,      0,          -1, -1,           NULL},
     {"Teams",                 NULL,     NULL,  1 << 1,                0,          -1,      0,          -1, -1,           NULL},
     {"mpv",                   NULL,     NULL,  1 << 2,                0,          -1,      0,          -1, -1,           NULL},
     {"firefox",               NULL,     NULL,  1 << 2,                0,          -1,      0,          -1, -1,           NULL},
-    {"vivaldi-bin",           NULL,     NULL,  1 << 6,                0,          -1,      0,          -1, -1,           NULL},
+    {"Vivaldi-flatpak",       NULL,     NULL,  1 << 2,                0,          -1,      0,          -1, -1,           NULL},
+    {"Vivaldi-stable",        NULL,     NULL,  1 << 2,                0,          -1,      0,          -1, -1,           NULL},
     {"chromium",              NULL,     NULL,  1 << 2,                0,          -1,      0,          -1, -1,           NULL},
     {"qutebrowser",           NULL,     NULL,  1 << 6,                0,          -1,      0,          -1, -1,           NULL},
     {"Google Chrome",         NULL,     NULL,  1 << 3,                0,          -1,      0,          -1, -1,           NULL},
     {"Electron",              NULL,     NULL,  1 << 4,                0,          -1,      0,          -1, -1,           NULL},
     {"discord",               NULL,     NULL,  1 << 4,                0,          -1,      0,          -1, -1,           NULL},
+    {"steam",                 NULL,     NULL,  1 << 6,                0,          -1,      0,          -1, -1,           NULL},
 
 };
 
@@ -82,6 +90,9 @@ static const Layout layouts[] = {
 /* helper for spawning shell commands in the pre dwm-5.0 fashion */
 #define SHCMD(cmd) { .v = (const char*[]){ "/bin/sh", "-c", cmd, NULL } }
 
+/* status bar process name for click actions */
+#define STATUSBAR "dwmblocks"
+
 /* commands */
 static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() */
 static const char *dmenucmd[] = { "dmenu_run", "-m", dmenumon, "-fn", dmenufont, "-nb", col_gray1, "-nf", col_gray3, "-sb", col_cyan, "-sf", col_gray4, NULL };
@@ -105,10 +116,19 @@ static const char *scratchpadcmd[] = {"wezterm", "start", "--class", "term-scrat
 static const char *btopscratchpadcmd[] = {"wezterm", "start", "--class", "btop-scratchpad", "--", "btop", NULL};
 static const char *olrscratchpadcmd[] = {"wezterm", "start", "--class", "olr-scratchpad", "--", "/usr/local/bin/olr", NULL};
 static const char *aiscratchpadcmd[] = {"wezterm", "start", "--class", "ai-scratchpad", "--", "/home/n0ko/misc/hostlister.sh", NULL};
+static const char *steamscratchpadcmd[] = {"wezterm", "start", "--class", "stm-scratchpad", "--", "/home/n0ko/scripts/steam_launcher.zsh", NULL};
 static const char *scrot_precision[] = {
     "scrot", "-s", "-e", "xclip -selection clipboard -t image/png -i $f &",
     "sleep", "1", "notify-send", "ScreenShot Precision", NULL
 };
+static const char *slockcmd[] = { "/home/n0ko/scripts/slock-dpms.sh", NULL };
+static const char *restartdwm[] = { "/home/n0ko/scripts/restart_dwm.sh", NULL };
+static const char *brightnessUp[] = { "/home/n0ko/scripts/brightnessUp.sh", NULL };
+static const char *brightnessDown[] = { "/home/n0ko/scripts/brightnessDown.sh", NULL };
+static const char *brightnessMid[] = { "/home/n0ko/scripts/brightnessMid.sh", NULL };
+static const char *vivaldileadercmd[] = { "/home/n0ko/.local/bin/vivaldi-leader.sh", NULL };
+static const char *dwmleadercmd[] = { "/home/n0ko/.local/bin/dwm-leader.sh", NULL };
+static const char *xboxConnect[] = { "/home/n0ko/scripts/xbox.sh", NULL };
 
 static const Key keys[] = {
 	/* modifier                     key        function        argument */
@@ -116,6 +136,11 @@ static const Key keys[] = {
 	{ Mod1Mask,                     XK_b,      togglescratch,  {.v = btopscratchpadcmd } },
 	{ Mod1Mask,                     XK_o,      togglescratch,  {.v = olrscratchpadcmd } },
 	{ Mod1Mask,                     XK_a,      togglescratch,  {.v = aiscratchpadcmd } },
+        { Mod1Mask,                     XK_r,      togglescratch,  {.v = steamscratchpadcmd } },
+	{ Mod1Mask|ControlMask,         XK_v,      spawn,          {.v = vivaldileadercmd } },
+	{ Mod1Mask,                     XK_t,      spawn,          {.v = dwmleadercmd } },
+	{ Mod1Mask,                     XK_c,      spawn,          {.v = xboxConnect } },
+	{ MODKEY,                       XK_r,      spawn,          {.v = restartdwm } },
 	{ MODKEY,                       XK_p,      spawn,          {.v = dmenucmd } },
 	{ MODKEY,                       XK_x,      spawn,          {.v = lyxcmd } },
 	{ MODKEY|ShiftMask,             XK_x,      spawn,          {.v = killcmd } },
@@ -141,6 +166,10 @@ static const Key keys[] = {
 	{ MODKEY,                       XK_d,      incnmaster,     {.i = -1 } },
 	{ MODKEY,                       XK_h,      setmfact,       {.f = -0.05} },
 	{ MODKEY,                       XK_l,      setmfact,       {.f = +0.05} },
+	{ MODKEY|ControlMask,           XK_l,      spawn,          {.v = slockcmd } },
+	{ 0,                            XF86XK_MonBrightnessUp,   spawn, {.v = brightnessUp } },
+	{ 0,                            XF86XK_MonBrightnessDown, spawn, {.v = brightnessDown } },
+	{ MODKEY|ControlMask,           XK_m,      spawn,          {.v = brightnessMid } },
 	{ MODKEY,                       XK_Return, zoom,           {0} },
 	{ MODKEY,                       XK_Tab,    view,           {0} },
 	{ Mod4Mask|ShiftMask,           XK_q,      killclient,     {0} },
@@ -173,7 +202,10 @@ static const Button buttons[] = {
 	{ ClkLtSymbol,          0,              Button1,        setlayout,      {0} },
 	{ ClkLtSymbol,          0,              Button3,        setlayout,      {.v = &layouts[2]} },
 	{ ClkWinTitle,          0,              Button2,        zoom,           {0} },
-	{ ClkStatusText,        0,              Button2,        spawn,          {.v = termcmd } },
+	{ ClkStatusText,        0,              Button1,        sigstatusbar,   {.i = 1} },
+	{ ClkStatusText,        0,              Button2,        sigstatusbar,   {.i = 2} },
+	{ ClkStatusText,        0,              Button3,        sigstatusbar,   {.i = 3} },
+	{ ClkStatusText,        ShiftMask,      Button1,        sigstatusbar,   {.i = 6} },
 	{ ClkClientWin,         MODKEY,         Button1,        movemouse,      {0} },
 	{ ClkClientWin,         MODKEY,         Button2,        togglefloating, {0} },
 	{ ClkClientWin,         MODKEY,         Button3,        resizemouse,    {0} },
