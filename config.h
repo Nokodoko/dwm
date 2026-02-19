@@ -160,7 +160,7 @@ static const Key keys[] = {
   { Mod1Mask|ControlMask,         XK_Down,   spawn,          {.v = dhp } },
   { Mod4Mask|ControlMask,         XK_Right,  spawn,          {.v = hb } },
   { Mod4Mask|ControlMask,         XK_Left,   spawn,          {.v = lb } },
-  { Mod1Mask|Mod4Mask,            XK_1,      spawn,          {.v = scrot_precision } },
+  { Mod1Mask,                     XK_1,      spawn,          {.v = scrot_precision } },
   { Mod4Mask|ShiftMask,           XK_Return, spawn,          {.v = termcmd } },
 	{ MODKEY|ShiftMask,             XK_l,      spawn,          {.v = lf } },
 	{ MODKEY,                       XK_b,      togglebar,      {0} },
