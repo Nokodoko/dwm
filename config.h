@@ -89,6 +89,9 @@ static const Rule rules[] = {
 /* default tags per monitor (index = monitor number) */
 static const unsigned int defaulttags[] = { 1 << 3, 1 << 0 }; /* mon 0: tag 4 (>_), mon 1: tag 1 (www) */
 
+/* tag-to-monitor map: which monitor owns each tag (index = tag index) */
+static const int tagmonmap[] = { 1, 1, 1, 0, 0 }; /* tags 1-3 -> mon 1, tags 4-5 -> mon 0 */
+
 /* layout(s) */
 const float mfact     = 0.55; /* factor of master area size [0.05..0.95] */
 static const int nmaster     = 1;    /* number of clients in master area */
@@ -105,7 +108,7 @@ static const Layout layouts[] = {
 /* key definitions */
 #define MODKEY Mod4Mask
 #define TAGKEYS(KEY,TAG) \
-	{ MODKEY,                       KEY,      view,           {.ui = 1 << TAG} }, \
+	{ MODKEY,                       KEY,      viewmon,        {.ui = 1 << TAG} }, \
 	{ MODKEY|ControlMask,           KEY,      toggleview,     {.ui = 1 << TAG} }, \
 	{ MODKEY|ShiftMask,             KEY,      tag,            {.ui = 1 << TAG} }, \
 	{ MODKEY|ControlMask|ShiftMask, KEY,      toggletag,      {.ui = 1 << TAG} },
@@ -143,8 +146,8 @@ static const char *steamscratchpadcmd[] = {"wezterm", "start", "--class", "stm-s
 static const char *sshscratchpadcmd[] = {"wezterm", "start", "--class", "ssh-scratchpad", "--", "ssh", "-t", "base", "zellij", "attach", "-c", "default", NULL};
 static const char *scrot_precision[] = { "/bin/sh", "-c", "scrot -s -e 'xclip -selection clipboard -t image/png -i $f && notify-send \"Screenshot Precision\" \"Copied to clipboard\"'", NULL };
 static const char *slockcmd[] = { "/home/n0ko/scripts/slock-dpms.sh", NULL };
-static const char *restartdwm[] = { "/home/n0ko/scripts/dwm-hotswap.sh", "base", NULL };
-static const char *restartdwm_wt[] = { "/home/n0ko/scripts/dwm-hotswap.sh", "pertag", NULL };
+static const char *restartdwm[] = { "/home/n0ko/scripts/dwm-hotswap.sh", "pertag", NULL };
+static const char *restartdwm_wt[] = { "/home/n0ko/scripts/dwm-hotswap.sh", "base", NULL };
 static const char *brightnessUp[] = { "/home/n0ko/scripts/brightnessUp.sh", NULL };
 static const char *brightnessDown[] = { "/home/n0ko/scripts/brightnessDown.sh", NULL };
 static const char *brightnessMid[] = { "/home/n0ko/scripts/brightnessMid.sh", NULL };

@@ -228,6 +228,7 @@ static void togglefloating(const Arg *arg);
 static void toggletag(const Arg *arg);
 static void toggleview(const Arg *arg);
 static void unfocus(Client *c, int setfocus);
+static void viewmon(const Arg *arg);
 static void unmanage(Client *c, int destroyed);
 static void unmapnotify(XEvent *e);
 static void updatebarpos(Monitor *m);
@@ -2408,6 +2409,55 @@ view(const Arg *arg)
 
 	focus(NULL);
 	arrange(selmon);
+}
+
+void
+viewmon(const Arg *arg)
+{
+	int i, targetmon;
+	Monitor *m;
+	Client *c;
+
+	/* find which tag bit is set */
+	if (!(arg->ui & TAGMASK))
+		return;
+	for (i = 0; !(arg->ui & 1 << i); i++) ;
+
+	/* look up the owning monitor for this tag */
+	if (i < LENGTH(tagmonmap))
+		targetmon = tagmonmap[i];
+	else
+		targetmon = 0;
+
+	/* find the target monitor */
+	for (m = mons; m && m->num != targetmon; m = m->next) ;
+	if (!m)
+		return;
+
+	/* switch to target monitor if different */
+	if (m != selmon) {
+		unfocus(selmon->sel, 0);
+		selmon = m;
+	}
+
+	/* switch that monitor's view */
+	view(arg);
+
+	/* focus a non-scratchpad visible client (scratchpads can steal focus) */
+	for (c = selmon->stack; c; c = c->snext)
+		if (ISVISIBLE(c) && !(c->tags & SCRATCHTAGS))
+			break;
+	if (c)
+		focus(c);
+
+	/* warp pointer to the focused client, or center of target monitor */
+	if (selmon->sel && ISVISIBLE(selmon->sel)) {
+		XWarpPointer(dpy, None, selmon->sel->win, 0, 0, 0, 0,
+			selmon->sel->w / 2, selmon->sel->h / 2);
+	} else {
+		XWarpPointer(dpy, None, root, 0, 0, 0, 0,
+			selmon->mx + selmon->mw / 2, selmon->my + selmon->mh / 2);
+	}
 }
 
 Client *
