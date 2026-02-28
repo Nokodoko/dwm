@@ -28,8 +28,8 @@ static const char *colors[][3]      = {
 	[SchemeSteam] = { col_gray3, col_gray1, col_purple },
 };
 
-/* tagging */
-static const char *tags[] = { "www", "tms", "slk", ">_", "stm", "SP", "SP2", "OLR", "AI", "STM", "SSH" };
+/* tagging — nerd font icons: term, team, chat, web, rocket, code, game, slack, music */
+static const char *tags[] = { "\xef\x92\x89", "\xef\x83\x80", "\xef\x81\xb5", "\xef\x82\xac", "\xef\x84\xb5", "\xef\x84\xa1", "\xef\x84\x9b", "\xef\x86\x98", "\xef\x80\x81", "SP", "SP2", "OLR", "AI", "STM", "SSH" };
 #define SCRATCHPAD_TAG (1 << (LENGTH(tags) - 6))
 #define BTOP_SCRATCHPAD_TAG (1 << (LENGTH(tags) - 5))
 #define OLR_SCRATCHPAD_TAG (1 << (LENGTH(tags) - 4))
@@ -39,58 +39,91 @@ static const char *tags[] = { "www", "tms", "slk", ">_", "stm", "SP", "SP2", "OL
 
 static const Rule rules[] = {
 	/* xprop(1):
-	 * 	WM_CLASS(STRING) = instance, class
-	 * 	WM_NAME(STRING) = title
+	 *   WM_CLASS(STRING) = instance, class
+	 *   WM_NAME(STRING) = title
 	 *
-	 * Dual-monitor pertag rules:
-	 *   Monitor 1 (wx=0, DP-2 60Hz, secondary left):
-	 *     - Browsers (www) -> tag 1 (1<<0)
-	 *     - Teams (tms)    -> tag 2 (1<<1)
-	 *     - Slack (slk)    -> tag 3 (1<<2)
-	 *   Monitor 0 (wx=3840, DP-0 144Hz, primary right):
-	 *     - Terminals (>_) -> tag 4 (1<<3)
-	 *     - Steam (stm)    -> tag 5 (1<<4)
-	 *   - Scratchpads: floating, monitor 0 (primary)
+	 * 4-monitor pertag rules (left-to-right tag layout):
+	 *   Mon 0 (HDMI-0, portrait left, x=0):
+	 *     - Terminals (>_) -> tag 1 (1<<0)
+	 *     - Chat (tms/cht) -> tag 2 (1<<1)
+	 *   Mon 2 (DP-2, 4K 60Hz, x=1092):
+	 *     - Browsers (www) -> tag 3 (1<<2)
+	 *   Mon 1 (DP-0, 4K 144Hz PRIMARY, x=4932):
+	 *     - Agents/Cmdr (agt) -> tag 4 (1<<3)
+	 *     - Code (dev) -> tag 5 (1<<4)
+	 *   Mon 3 (DP-4, portrait right, x=8772):
+	 *     - Games (stm) -> tag 6 (1<<5)
+	 *     - Monitoring (mon) -> tag 7 (1<<6)
+	 *     - Media (med) -> tag 9 (1<<8)
+	 *   Scratchpads: floating, monitor -1 (follow focus)
 	 */
 	/* class              instance  title  tags mask              isfloating  monitor  iscentered  bw  borderscheme  bordertitle */
-    {"Gimp",              NULL,     NULL,  0,                     1,          -1,      0,          -1, -1,           NULL},
-    {"wezterm-lf",        NULL,     NULL,  0,                     1,           0,      1,           1, SchemeOlr,    "lf"},
-    {"wezterm-tabtiler",  NULL,     NULL,  0,                     1,           0,      1,           1, SchemeOlr,    "tiles"},
-    {"term-scratchpad",   NULL,     NULL,  SCRATCHPAD_TAG,        1,           0,      0,          -1, -1,           NULL},
-    {"btop-scratchpad",   NULL,     NULL,  BTOP_SCRATCHPAD_TAG,   1,           0,      0,          -1, -1,           NULL},
-    {"olr-scratchpad",    NULL,     NULL,  OLR_SCRATCHPAD_TAG,    1,           0,      1,           1, SchemeOlr,    "olr"},
-    {"ai-scratchpad",     NULL,     NULL,  AI_SCRATCHPAD_TAG,     1,           0,      0,           1, SchemeAI,     "AI"},
-    {"stm-scratchpad",    NULL,     NULL,  STEAM_SCRATCHPAD_TAG,  1,           0,      1,           1, SchemeSteam,  "Steam"},
-    {"ssh-scratchpad",    NULL,     NULL,  SSH_SCRATCHPAD_TAG,    1,           0,      0,          -1, -1,           NULL},
-    /* Terminals -> tag 4 (>_), primary monitor (mon 0, wx=3840, DP-0 144Hz right) */
-    {"St",                    NULL,     NULL,  1 << 3,                0,           0,      1,          -1, -1,           NULL},
-    {"org.wezfurlong.wezterm",NULL,     NULL,  1 << 3,                0,           0,      0,          -1, -1,           NULL},
-    {"wireshark",             NULL,     NULL,  0,                     0,          -1,      -1,         -1, -1,           NULL},
-    /* Browsers -> tag 1 (www), secondary monitor (mon 1, wx=0, DP-2 60Hz left) */
-    {"firefox",               NULL,     NULL,  1 << 0,                0,           1,      0,          -1, -1,           NULL},
-    {"Vivaldi-stable",        NULL,     NULL,  1 << 0,                0,           1,      0,          -1, -1,           NULL},
-    {"chromium",              NULL,     NULL,  1 << 0,                0,           1,      0,          -1, -1,           NULL},
-    {"qutebrowser",           NULL,     NULL,  1 << 0,                0,           1,      0,          -1, -1,           NULL},
-    {"Google-chrome",         NULL,     NULL,  1 << 0,                0,           1,      0,          -1, -1,           NULL},
-    /* Teams -> tag 2 (tms), secondary monitor (mon 1, wx=0, DP-2 60Hz left) */
-    {"teams-for-linux",       NULL,     NULL,  1 << 1,                0,           1,      0,          -1, -1,           NULL},
-    /* Slack -> tag 3 (slk), secondary monitor (mon 1, wx=0, DP-2 60Hz left) */
-    {"Slack",                 NULL,     NULL,  1 << 2,                0,           1,      0,          -1, -1,           NULL},
-    /* discord/Electron -> tag 3 (slk), follow focus for monitor */
-    {"Electron",              NULL,     NULL,  1 << 2,                0,          -1,      0,          -1, -1,           NULL},
-    {"discord",               NULL,     NULL,  1 << 2,                0,          -1,      0,          -1, -1,           NULL},
-    /* mpv -> follow focus */
-    {"mpv",                   NULL,     NULL,  0,                     0,          -1,      0,          -1, -1,           NULL},
-    /* Steam/Games -> tag 5 (stm), primary monitor (mon 0, wx=3840, DP-0 144Hz right) */
-    {"steam",                 NULL,     NULL,  1 << 4,                0,           0,      0,          -1, -1,           NULL},
 
+	/* --- Floating utilities (follow focus) --- */
+	{"Gimp",              NULL,     NULL,  0,                     1,          -1,      0,          -1, -1,           NULL},
+
+	/* --- Scratchpads: floating, follow focus (mon -1) --- */
+	{"term-scratchpad",   NULL,     NULL,  SCRATCHPAD_TAG,        1,          -1,      0,          -1, -1,           NULL},
+	{"btop-scratchpad",   NULL,     NULL,  BTOP_SCRATCHPAD_TAG,   1,          -1,      0,          -1, -1,           NULL},
+	{"olr-scratchpad",    NULL,     NULL,  OLR_SCRATCHPAD_TAG,    1,          -1,      1,           1, SchemeOlr,    "olr"},
+	{"ai-scratchpad",     NULL,     NULL,  AI_SCRATCHPAD_TAG,     1,          -1,      0,           1, SchemeAI,     "AI"},
+	{"stm-scratchpad",    NULL,     NULL,  STEAM_SCRATCHPAD_TAG,  1,          -1,      1,           1, SchemeSteam,  "Steam"},
+	{"ssh-scratchpad",    NULL,     NULL,  SSH_SCRATCHPAD_TAG,    1,          -1,      0,          -1, -1,           NULL},
+
+	/* --- Floating overlays (follow focus) --- */
+	{"wezterm-lf",        NULL,     NULL,  0,                     1,          -1,      1,           1, SchemeOlr,    "lf"},
+	{"wezterm-tabtiler",  NULL,     NULL,  0,                     1,          -1,      1,           1, SchemeOlr,    "tiles"},
+
+	/* --- Mon 1 (DP-0 144Hz PRIMARY): Tag 4 (terminals, 1<<3) --- */
+	{"St",                    NULL,     NULL,  1 << 3,            0,           1,      1,          -1, -1,           NULL},
+	{"org.wezfurlong.wezterm",NULL,     NULL,  1 << 3,            0,           1,      0,          -1, -1,           NULL},
+	{"wireshark",             NULL,     NULL,  1 << 3,            0,           1,      -1,         -1, -1,           NULL},
+
+	/* --- Mon 0 (HDMI-0 portrait): Tag 2 (chat, 1<<1) --- */
+	{"teams-for-linux",       NULL,     NULL,  1 << 1,            0,           0,      0,          -1, -1,           NULL},
+	{"Slack",                 NULL,     NULL,  1 << 1,            0,           0,      0,          -1, -1,           NULL},
+	{"discord",               NULL,     NULL,  1 << 1,            0,           0,      0,          -1, -1,           NULL},
+	{"ZapZap",                NULL,     NULL,  1 << 1,            0,           0,      0,          -1, -1,           NULL},
+	{"Electron",              NULL,     NULL,  1 << 1,            0,           0,      0,          -1, -1,           NULL},
+
+	/* --- Mon 2 (DP-2 60Hz): Tag 3 (browsers, 1<<2) --- */
+	{"firefox",               NULL,     NULL,  1 << 2,            0,           2,      0,          -1, -1,           NULL},
+	{"Vivaldi-stable",        NULL,     NULL,  1 << 2,            0,           2,      0,          -1, -1,           NULL},
+	{"Vivaldi-flatpak",       NULL,     NULL,  1 << 2,            0,           2,      0,          -1, -1,           NULL},
+	{"chromium",              NULL,     NULL,  1 << 2,            0,           2,      0,          -1, -1,           NULL},
+	{"qutebrowser",           NULL,     NULL,  1 << 2,            0,           2,      0,          -1, -1,           NULL},
+	{"Google-chrome",         NULL,     NULL,  1 << 2,            0,           2,      0,          -1, -1,           NULL},
+
+	/* --- Mon 2 (DP-2 60Hz): Tag 3 (agents/cmdr, 1<<2) --- */
+	{"cmdr-dashboard",        NULL,     NULL,  1 << 2,            0,           2,      0,          -1, -1,           NULL},
+	{"cmdr-terminal",         NULL,     NULL,  1 << 2,            0,           2,      0,          -1, -1,           NULL},
+	{"overstory-terminal",    NULL,     NULL,  1 << 2,            0,           2,      0,          -1, -1,           NULL},
+	{"cmdr-feed",             NULL,     NULL,  1 << 2,            0,           2,      0,          -1, -1,           NULL},
+	{"cmdr-costs",            NULL,     NULL,  1 << 2,            0,           2,      0,          -1, -1,           NULL},
+	{"cmdr-logs",             NULL,     NULL,  1 << 2,            0,           2,      0,          -1, -1,           NULL},
+	{"cmdr-errors",           NULL,     NULL,  1 << 2,            0,           2,      0,          -1, -1,           NULL},
+
+	/* --- Mon 1 (DP-0 144Hz): Tag 5 (games, 1<<4) --- */
+	{"steam",                 NULL,     NULL,  1 << 4,            0,           1,      0,          -1, -1,           NULL},
+
+	/* --- Mon 3 (DP-4 portrait): Tag 9 (media, 1<<8) --- */
+	{"mpv",                   NULL,     NULL,  1 << 8,            0,           3,      0,          -1, -1,           NULL},
 };
 
 /* default tags per monitor (index = monitor number) */
-static const unsigned int defaulttags[] = { 1 << 3, 1 << 0 }; /* mon 0: tag 4 (>_), mon 1: tag 1 (www) */
+static const unsigned int defaulttags[] = {
+    1 << 0,   /* mon 0 (HDMI-0): tag 1 */
+    1 << 3,   /* mon 1 (DP-0):   tag 4 */
+    1 << 2,   /* mon 2 (DP-2):   tag 3 */
+    1 << 5,   /* mon 3 (DP-4):   tag 6 */
+};
 
 /* tag-to-monitor map: which monitor owns each tag (index = tag index) */
-static const int tagmonmap[] = { 1, 1, 1, 0, 0 }; /* tags 1-3 -> mon 1, tags 4-5 -> mon 0 */
+static const int tagmonmap[] = { 0, 0, 2, 1, 1, 3, 3, 3, 3 };
+/*                                ^  ^  ^  ^  ^  ^  ^  ^  ^
+ *                           tag: 1  2  3  4  5  6  7  8  9
+ *                          icon: >_ tm ch ww ag cd gm mn mu
+ *                           mon: 0  0  2  1  1  3  3  3  3  */
 
 /* layout(s) */
 const float mfact     = 0.55; /* factor of master area size [0.05..0.95] */
@@ -120,7 +153,7 @@ static const Layout layouts[] = {
 #define STATUSBAR "dwmblocks"
 
 /* commands */
-static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() */
+static char dmenumon[2] = "1"; /* component of dmenucmd, DP-0 (primary working monitor, mon 1) */
 static const char *dmenucmd[] = { "dmenu_run", "-m", dmenumon, "-fn", dmenufont, "-nb", col_gray1, "-nf", col_gray3, "-sb", col_cyan, "-sf", col_gray4, NULL };
 static const char *termcmd[]  = { "wezterm", NULL };
 static const char *lyxcmd[]  = { "wezterm", "-e", "lyx", NULL };
@@ -137,7 +170,7 @@ static const char *volumeDown[]  = { "/home/n0ko/scripts/volume.sh", "down", NUL
 static const char *volumeMute[]  = { "/home/n0ko/scripts/volume.sh", "mute", NULL };
 static const char *cal[]  = { "wezterm", "-e", "calcurse", NULL };
 static const char *top[]  = { "wezterm", "-e", "btop", NULL };
-static const char *lf[]  = { "wezterm", "start", "--class", "wezterm-lf", "--", "lf", NULL };
+static const char *yazi[]  = { "/home/n0ko/scripts/fm-launcher.sh", "yazi", NULL };
 static const char *scratchpadcmd[] = {"wezterm", "start", "--class", "term-scratchpad", NULL};
 static const char *btopscratchpadcmd[] = {"wezterm", "start", "--class", "btop-scratchpad", "--", "btop", NULL};
 static const char *olrscratchpadcmd[] = {"wezterm", "start", "--class", "olr-scratchpad", "--", "/usr/local/bin/olr", NULL};
@@ -146,8 +179,8 @@ static const char *steamscratchpadcmd[] = {"wezterm", "start", "--class", "stm-s
 static const char *sshscratchpadcmd[] = {"wezterm", "start", "--class", "ssh-scratchpad", "--", "ssh", "-t", "base", "zellij", "attach", "-c", "default", NULL};
 static const char *scrot_precision[] = { "/bin/sh", "-c", "scrot -s -e 'xclip -selection clipboard -t image/png -i $f && notify-send \"Screenshot Precision\" \"Copied to clipboard\"'", NULL };
 static const char *slockcmd[] = { "/home/n0ko/scripts/slock-dpms.sh", NULL };
-static const char *restartdwm[] = { "/home/n0ko/scripts/dwm-hotswap.sh", "pertag", NULL };
-static const char *restartdwm_wt[] = { "/home/n0ko/scripts/dwm-hotswap.sh", "base", NULL };
+static const char *restartdwm[] = { "/home/n0ko/scripts/dwm-hotswap-pertag.sh", NULL };
+static const char *restartdwm_wt[] = { "/home/n0ko/scripts/dwm-hotswap.sh", "pertag", NULL };
 static const char *brightnessUp[] = { "/home/n0ko/scripts/brightnessUp.sh", NULL };
 static const char *brightnessDown[] = { "/home/n0ko/scripts/brightnessDown.sh", NULL };
 static const char *brightnessMid[] = { "/home/n0ko/scripts/brightnessMid.sh", NULL };
@@ -185,7 +218,7 @@ static const Key keys[] = {
   { Mod4Mask|ControlMask,         XK_Left,   spawn,          {.v = lb } },
   { Mod1Mask,                     XK_1,      spawn,          {.v = scrot_precision } },
   { Mod4Mask|ShiftMask,           XK_Return, spawn,          {.v = termcmd } },
-	{ MODKEY|ShiftMask,             XK_l,      spawn,          {.v = lf } },
+	{ MODKEY|ShiftMask,             XK_l,      spawn,          {.v = yazi } },
 	{ MODKEY,                       XK_b,      togglebar,      {0} },
 	{ MODKEY,                       XK_j,      focusstack,     {.i = +1 } },
 	{ MODKEY,                       XK_k,      focusstack,     {.i = -1 } },
