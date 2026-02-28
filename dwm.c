@@ -1318,6 +1318,12 @@ manage(Window w, XWindowAttributes *wa)
 		arrange(c->mon);
 	focus(c);
 
+	/* Scale wezterm-lf (yazi/lf) floating window to 1.5x default size */
+	if (c->bordertitle[0] != '\0' && strcmp(c->bordertitle, "lf") == 0) {
+		c->w = c->w * 3 / 2;
+		c->h = c->h * 3 / 2;
+	}
+
 	if(c->iscentered) {
 		c->x = selmon->wx + (selmon->ww - WIDTH(c)) / 2;
 		c->y = selmon->wy + (selmon->wh - HEIGHT(c)) / 2;

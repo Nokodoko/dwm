@@ -28,8 +28,8 @@ static const char *colors[][3]      = {
 	[SchemeSteam] = { col_gray3, col_gray1, col_purple },
 };
 
-/* tagging */
-static const char *tags[] = { ">_", "(-.x)", "~>", "4", "5", "6", "7", "8", "9", "SP", "SP2", "OLR", "AI", "STM", "SSH" };
+/* tagging — nerd font icons: term, team, chat, web, rocket, code, game, slack, music */
+static const char *tags[] = { "\xef\x92\x89", "\xef\x83\x80", "\xef\x81\xb5", "\xef\x82\xac", "\xef\x84\xb5", "\xef\x84\xa1", "\xef\x84\x9b", "\xef\x86\x98", "\xef\x80\x81", "SP", "SP2", "OLR", "AI", "STM", "SSH" };
 #define SCRATCHPAD_TAG (1 << (LENGTH(tags) - 6))
 #define BTOP_SCRATCHPAD_TAG (1 << (LENGTH(tags) - 5))
 #define OLR_SCRATCHPAD_TAG (1 << (LENGTH(tags) - 4))
@@ -61,10 +61,12 @@ static const Rule rules[] = {
     {"Vivaldi-flatpak",       NULL,     NULL,  1 << 2,                0,          -1,      0,          -1, -1,           NULL},
     {"Vivaldi-stable",        NULL,     NULL,  1 << 2,                0,          -1,      0,          -1, -1,           NULL},
     {"chromium",              NULL,     NULL,  1 << 2,                0,          -1,      0,          -1, -1,           NULL},
+    {"ZapZap",                NULL,     NULL,  1 << 2,                0,          -1,      0,          -1, -1,           NULL},
     {"qutebrowser",           NULL,     NULL,  1 << 6,                0,          -1,      0,          -1, -1,           NULL},
     {"Google Chrome",         NULL,     NULL,  1 << 3,                0,          -1,      0,          -1, -1,           NULL},
+    {"overstory-terminal",    NULL,     NULL,  1 << 3,                0,          -1,      0,          -1, -1,           NULL},
     {"Electron",              NULL,     NULL,  1 << 4,                0,          -1,      0,          -1, -1,           NULL},
-    {"discord",               NULL,     NULL,  1 << 4,                0,          -1,      0,          -1, -1,           NULL},
+    {"discord",               NULL,     NULL,  1 << 2,                0,          -1,      0,          -1, -1,           NULL},
     {"steam",                 NULL,     NULL,  1 << 6,                0,          -1,      0,          -1, -1,           NULL},
 
 };
@@ -114,7 +116,7 @@ static const char *volumeDown[]  = { "/home/n0ko/scripts/volume.sh", "down", NUL
 static const char *volumeMute[]  = { "/home/n0ko/scripts/volume.sh", "mute", NULL };
 static const char *cal[]  = { "wezterm", "-e", "calcurse", NULL };
 static const char *top[]  = { "wezterm", "-e", "btop", NULL };
-static const char *lf[]  = { "wezterm", "start", "--class", "wezterm-lf", "--", "lf", NULL };
+static const char *yazi[]  = { "/home/n0ko/scripts/fm-launcher.sh", "yazi", NULL };
 static const char *scratchpadcmd[] = {"wezterm", "start", "--class", "term-scratchpad", NULL};
 static const char *btopscratchpadcmd[] = {"wezterm", "start", "--class", "btop-scratchpad", "--", "btop", NULL};
 static const char *olrscratchpadcmd[] = {"wezterm", "start", "--class", "olr-scratchpad", "--", "/usr/local/bin/olr", NULL};
@@ -123,8 +125,8 @@ static const char *steamscratchpadcmd[] = {"wezterm", "start", "--class", "stm-s
 static const char *sshscratchpadcmd[] = {"wezterm", "start", "--class", "ssh-scratchpad", "--", "ssh", "-t", "base", "zellij", "attach", "-c", "default", NULL};
 static const char *scrot_precision[] = { "/bin/sh", "-c", "scrot -s -e 'xclip -selection clipboard -t image/png -i $f && notify-send \"Screenshot Precision\" \"Copied to clipboard\"'", NULL };
 static const char *slockcmd[] = { "/home/n0ko/scripts/slock-dpms.sh", NULL };
-static const char *restartdwm[] = { "/home/n0ko/scripts/restart_dwm.sh", NULL };
-static const char *restartdwm_wt[] = { "/home/n0ko/scripts/restart_dwm_worktree.sh", NULL };
+static const char *restartdwm[] = { "/home/n0ko/scripts/dwm-hotswap.sh", "base", NULL };
+static const char *restartdwm_wt[] = { "/home/n0ko/scripts/dwm-hotswap.sh", "pertag", NULL };
 static const char *brightnessUp[] = { "/home/n0ko/scripts/brightnessUp.sh", NULL };
 static const char *brightnessDown[] = { "/home/n0ko/scripts/brightnessDown.sh", NULL };
 static const char *brightnessMid[] = { "/home/n0ko/scripts/brightnessMid.sh", NULL };
@@ -162,7 +164,7 @@ static const Key keys[] = {
   { Mod4Mask|ControlMask,         XK_Left,   spawn,          {.v = lb } },
   { Mod1Mask,                     XK_1,      spawn,          {.v = scrot_precision } },
   { Mod4Mask|ShiftMask,           XK_Return, spawn,          {.v = termcmd } },
-	{ MODKEY|ShiftMask,             XK_l,      spawn,          {.v = lf } },
+	{ MODKEY|ShiftMask,             XK_l,      spawn,          {.v = yazi } },
 	{ MODKEY,                       XK_b,      togglebar,      {0} },
 	{ MODKEY,                       XK_j,      focusstack,     {.i = +1 } },
 	{ MODKEY,                       XK_k,      focusstack,     {.i = -1 } },
