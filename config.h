@@ -8,8 +8,9 @@ static const unsigned int gappx     = 2;        /* gap pixel between windows */
 static const unsigned int snap      = 32;       /* snap pixel */
 static const int showbar            = 1;        /* 0 means no bar */
 static const int topbar             = 1;        /* 0 means bottom bar */
-static const char *fonts[] = {"VictorMono Nerd Font Mono:style=Italic:size=15"};
-static const char dmenufont[] = "VictorMono Nerd Font Mono:style=Italic:size=15";
+static const int user_bh            = 0;        /* 0 = font-based bar height, >0 = fixed px */
+static const char *fonts[] = {"VictorMono Nerd Font Mono:style=Italic:size=11"};
+static const char dmenufont[] = "VictorMono Nerd Font Mono:style=Italic:size=11";
 static const char col_gray1[] = "#000000";
 static const char col_gray2[] = "#333333";
 static const char col_gray3[] = "#5F5F00";
@@ -29,12 +30,13 @@ static const char *colors[][3]      = {
 };
 
 /* tagging */
-static const char *tags[] = { ">_", "(-.x)", "~>", "4", "5", "6", "7", "8", "9", "SP", "SP2", "OLR", "AI", "STM" };
-#define SCRATCHPAD_TAG (1 << (LENGTH(tags) - 5))
-#define BTOP_SCRATCHPAD_TAG (1 << (LENGTH(tags) - 4))
-#define OLR_SCRATCHPAD_TAG (1 << (LENGTH(tags) - 3))
-#define AI_SCRATCHPAD_TAG (1 << (LENGTH(tags) - 2))
-#define STEAM_SCRATCHPAD_TAG (1 << (LENGTH(tags) - 1))
+static const char *tags[] = { ">_", "(-.x)", "~>", "4", "5", "6", "7", "8", "9", "SP", "SP2", "OLR", "AI", "STM", "SSH" };
+#define SCRATCHPAD_TAG (1 << (LENGTH(tags) - 6))
+#define BTOP_SCRATCHPAD_TAG (1 << (LENGTH(tags) - 5))
+#define OLR_SCRATCHPAD_TAG (1 << (LENGTH(tags) - 4))
+#define AI_SCRATCHPAD_TAG (1 << (LENGTH(tags) - 3))
+#define STEAM_SCRATCHPAD_TAG (1 << (LENGTH(tags) - 2))
+#define SSH_SCRATCHPAD_TAG (1 << (LENGTH(tags) - 1))
 
 static const Rule rules[] = {
 	/* xprop(1):
@@ -44,11 +46,14 @@ static const Rule rules[] = {
 	/* class              instance  title  tags mask              isfloating  monitor  iscentered  bw  borderscheme  bordertitle */
     {"Gimp",              NULL,     NULL,  0,                     1,          -1,      0,          -1, -1,           NULL},
     {"wezterm-lf",        NULL,     NULL,  0,                     1,          -1,      1,           1, SchemeOlr,    "lf"},
+    {"wezterm-tabtiler",  NULL,     NULL,  0,                     1,          -1,      1,           1, SchemeOlr,    "tiles"},
+    {"dmenu-tabkill",     NULL,     NULL,  0,                     1,          -1,      1,           1, SchemeOlr,    "kill"},
     {"term-scratchpad",   NULL,     NULL,  SCRATCHPAD_TAG,        1,          -1,      0,          -1, -1,           NULL},
     {"btop-scratchpad",   NULL,     NULL,  BTOP_SCRATCHPAD_TAG,   1,          -1,      0,          -1, -1,           NULL},
     {"olr-scratchpad",    NULL,     NULL,  OLR_SCRATCHPAD_TAG,    1,          -1,      1,           1, SchemeOlr,    "olr"},
     {"ai-scratchpad",     NULL,     NULL,  AI_SCRATCHPAD_TAG,     1,          -1,      0,           1, SchemeAI,     "AI"},
     {"stm-scratchpad",    NULL,     NULL,  STEAM_SCRATCHPAD_TAG,  1,          -1,      1,           1, SchemeSteam,  "Steam"},
+    {"ssh-scratchpad",    NULL,     NULL,  SSH_SCRATCHPAD_TAG,    1,          -1,      0,          -1, -1,           NULL},
     {"St",                    NULL,     NULL,  1,                     0,          0,       1,          -1, -1,           NULL},
     {"wireshark",             NULL,     NULL,  1,                     0,          0,       -1,         -1, -1,           NULL},
     {"Slack",                 NULL,     NULL,  1 << 7,                0,          -1,      0,          -1, -1,           NULL},
@@ -106,29 +111,28 @@ static const char *pavucontrol[]  = { "pavucontrol", NULL };
 static const char *dhp[]  = { "dhp.zsh", NULL };
 static const char *mouseOn[]  = { "touchpadOn.lua", NULL };
 static const char *mouseOff[]  = { "touchpadOff.lua", NULL };
-static const char *volumeUp[]  = { "~/scripts/volume.sh up", NULL };
-static const char *volumeDown[]  = { "~/scripts/volume.sh down", NULL };
-static const char *volumeMute[]  = { "~/scripts/volume.sh mute", NULL };
+static const char *volumeUp[]  = { "/home/n0ko/scripts/volume.sh", "up", NULL };
+static const char *volumeDown[]  = { "/home/n0ko/scripts/volume.sh", "down", NULL };
+static const char *volumeMute[]  = { "/home/n0ko/scripts/volume.sh", "mute", NULL };
 static const char *cal[]  = { "wezterm", "-e", "calcurse", NULL };
 static const char *top[]  = { "wezterm", "-e", "btop", NULL };
-static const char *lf[]  = { "wezterm", "start", "--class", "wezterm-lf", "--", "lf", NULL };
+static const char *yazi[]  = { "/home/n0ko/scripts/fm-launcher.sh", "yazi", NULL };
 static const char *scratchpadcmd[] = {"wezterm", "start", "--class", "term-scratchpad", NULL};
 static const char *btopscratchpadcmd[] = {"wezterm", "start", "--class", "btop-scratchpad", "--", "btop", NULL};
 static const char *olrscratchpadcmd[] = {"wezterm", "start", "--class", "olr-scratchpad", "--", "/usr/local/bin/olr", NULL};
 static const char *aiscratchpadcmd[] = {"wezterm", "start", "--class", "ai-scratchpad", "--", "/home/n0ko/misc/hostlister.sh", NULL};
 static const char *steamscratchpadcmd[] = {"wezterm", "start", "--class", "stm-scratchpad", "--", "/home/n0ko/scripts/steam_launcher.zsh", NULL};
-static const char *scrot_precision[] = {
-    "scrot", "-s", "-e", "xclip -selection clipboard -t image/png -i $f &",
-    "sleep", "1", "notify-send", "ScreenShot Precision", NULL
-};
+static const char *sshscratchpadcmd[] = {"wezterm", "start", "--class", "ssh-scratchpad", "--", "ssh", "monty", NULL};
+static const char *scrot_precision[] = { "/bin/sh", "-c", "scrot -s -e 'xclip -selection clipboard -t image/png -i $f && notify-send \"Screenshot Precision\" \"Copied to clipboard\"'", NULL };
 static const char *slockcmd[] = { "/home/n0ko/scripts/slock-dpms.sh", NULL };
 static const char *restartdwm[] = { "/home/n0ko/scripts/restart_dwm.sh", NULL };
+static const char *restartdwm_wt[] = { "/home/n0ko/scripts/restart_dwm_worktree.sh", NULL };
 static const char *brightnessUp[] = { "/home/n0ko/scripts/brightnessUp.sh", NULL };
 static const char *brightnessDown[] = { "/home/n0ko/scripts/brightnessDown.sh", NULL };
 static const char *brightnessMid[] = { "/home/n0ko/scripts/brightnessMid.sh", NULL };
+static const char *xboxConnect[] = { "/home/n0ko/scripts/xbox.sh", NULL };
 static const char *vivaldileadercmd[] = { "/home/n0ko/.local/bin/vivaldi-leader.sh", NULL };
 static const char *dwmleadercmd[] = { "/home/n0ko/.local/bin/dwm-leader.sh", NULL };
-static const char *xboxConnect[] = { "/home/n0ko/scripts/xbox.sh", NULL };
 
 static const Key keys[] = {
 	/* modifier                     key        function        argument */
@@ -137,10 +141,12 @@ static const Key keys[] = {
 	{ Mod1Mask,                     XK_o,      togglescratch,  {.v = olrscratchpadcmd } },
 	{ Mod1Mask,                     XK_a,      togglescratch,  {.v = aiscratchpadcmd } },
         { Mod1Mask,                     XK_r,      togglescratch,  {.v = steamscratchpadcmd } },
+	{ Mod1Mask|ShiftMask,           XK_s,      togglescratch,  {.v = sshscratchpadcmd } },
 	{ Mod1Mask|ControlMask,         XK_v,      spawn,          {.v = vivaldileadercmd } },
 	{ Mod1Mask,                     XK_t,      spawn,          {.v = dwmleadercmd } },
 	{ Mod1Mask,                     XK_c,      spawn,          {.v = xboxConnect } },
 	{ MODKEY,                       XK_r,      spawn,          {.v = restartdwm } },
+	{ MODKEY|ShiftMask,             XK_r,      spawn,          {.v = restartdwm_wt } },
 	{ MODKEY,                       XK_p,      spawn,          {.v = dmenucmd } },
 	{ MODKEY,                       XK_x,      spawn,          {.v = lyxcmd } },
 	{ MODKEY|ShiftMask,             XK_x,      spawn,          {.v = killcmd } },
@@ -156,9 +162,9 @@ static const Key keys[] = {
   { Mod1Mask|ControlMask,         XK_Down,   spawn,          {.v = dhp } },
   { Mod4Mask|ControlMask,         XK_Right,  spawn,          {.v = hb } },
   { Mod4Mask|ControlMask,         XK_Left,   spawn,          {.v = lb } },
-  { Mod1Mask,                     XK_1,      spawn,          {.v = scrot_precision } },
+  { Mod1Mask|Mod4Mask,            XK_1,      spawn,          {.v = scrot_precision } },
   { Mod4Mask|ShiftMask,           XK_Return, spawn,          {.v = termcmd } },
-	{ MODKEY|ShiftMask,             XK_l,      spawn,          {.v = lf } },
+	{ MODKEY|ShiftMask,             XK_l,      spawn,          {.v = yazi } },
 	{ MODKEY,                       XK_b,      togglebar,      {0} },
 	{ MODKEY,                       XK_j,      focusstack,     {.i = +1 } },
 	{ MODKEY,                       XK_k,      focusstack,     {.i = -1 } },
