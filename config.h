@@ -61,7 +61,7 @@ static const Rule rules[] = {
     {"Vivaldi-flatpak",       NULL,     NULL,  1 << 2,                0,          -1,      0,          -1, -1,           NULL},
     {"Vivaldi-stable",        NULL,     NULL,  1 << 2,                0,          -1,      0,          -1, -1,           NULL},
     {"chromium",              NULL,     NULL,  1 << 2,                0,          -1,      0,          -1, -1,           NULL},
-    {"ZapZap",                NULL,     NULL,  1 << 2,                0,          -1,      0,          -1, -1,           NULL},
+    {"ZapZap",                NULL,     NULL,  1 << 2,                0,           0,      0,          -1, -1,           NULL},
     {"qutebrowser",           NULL,     NULL,  1 << 6,                0,          -1,      0,          -1, -1,           NULL},
     {"Google Chrome",         NULL,     NULL,  1 << 3,                0,          -1,      0,          -1, -1,           NULL},
     {"overstory-terminal",    NULL,     NULL,  1 << 3,                0,          -1,      0,          -1, -1,           NULL},
