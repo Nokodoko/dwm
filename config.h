@@ -79,12 +79,12 @@ static const Rule rules[] = {
 	{"org.wezfurlong.wezterm",NULL,     NULL,  1 << 3,            0,           1,      0,          -1, -1,           NULL},
 	{"wireshark",             NULL,     NULL,  1 << 3,            0,           1,      -1,         -1, -1,           NULL},
 
-	/* --- Mon 0 (HDMI-0 portrait): Tag 2 (chat, 1<<1) --- */
-	{"teams-for-linux",       NULL,     NULL,  1 << 1,            0,           0,      0,          -1, -1,           NULL},
-	{"Slack",                 NULL,     NULL,  1 << 1,            0,           0,      0,          -1, -1,           NULL},
-	{"discord",               NULL,     NULL,  1 << 1,            0,           0,      0,          -1, -1,           NULL},
-	{"ZapZap",                NULL,     NULL,  1 << 1,            0,           0,      0,          -1, -1,           NULL},
-	{"Electron",              NULL,     NULL,  1 << 1,            0,           0,      0,          -1, -1,           NULL},
+	/* --- Mon 2 (DP-2 60Hz): Tag 2 (chat, 1<<1) --- */
+	{"teams-for-linux",       NULL,     NULL,  1 << 1,            0,           2,      0,          -1, -1,           NULL},
+	{"Slack",                 NULL,     NULL,  1 << 1,            0,           2,      0,          -1, -1,           NULL},
+	{"discord",               NULL,     NULL,  1 << 1,            0,           2,      0,          -1, -1,           NULL},
+	{"ZapZap",                NULL,     NULL,  1 << 1,            0,           2,      0,          -1, -1,           NULL},
+	{"Electron",              NULL,     NULL,  1 << 1,            0,           2,      0,          -1, -1,           NULL},
 
 	/* --- Mon 2 (DP-2 60Hz): Tag 3 (browsers, 1<<2) --- */
 	{"firefox",               NULL,     NULL,  1 << 2,            0,           2,      0,          -1, -1,           NULL},
@@ -114,16 +114,16 @@ static const Rule rules[] = {
 static const unsigned int defaulttags[] = {
     1 << 0,   /* mon 0 (HDMI-0): tag 1 */
     1 << 3,   /* mon 1 (DP-0):   tag 4 */
-    1 << 2,   /* mon 2 (DP-2):   tag 3 */
+    1 << 1,   /* mon 2 (DP-2):   tag 2 */
     1 << 5,   /* mon 3 (DP-4):   tag 6 */
 };
 
 /* tag-to-monitor map: which monitor owns each tag (index = tag index) */
-static const int tagmonmap[] = { 0, 0, 2, 1, 1, 3, 3, 3, 3 };
+static const int tagmonmap[] = { 0, 2, 2, 1, 1, 3, 3, 3, 3 };
 /*                                ^  ^  ^  ^  ^  ^  ^  ^  ^
  *                           tag: 1  2  3  4  5  6  7  8  9
  *                          icon: >_ tm ch ww ag cd gm mn mu
- *                           mon: 0  0  2  1  1  3  3  3  3  */
+ *                           mon: 0  2  2  1  1  3  3  3  3  */
 
 /* layout(s) */
 const float mfact     = 0.55; /* factor of master area size [0.05..0.95] */
