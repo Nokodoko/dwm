@@ -28,8 +28,8 @@ static const char *colors[][3]      = {
 	[SchemeSteam] = { col_gray3, col_gray1, col_purple },
 };
 
-/* tagging — nerd font icons: term, team, chat, web, rocket, code, game, slack, music */
-static const char *tags[] = { "\xef\x92\x89", "\xef\x83\x80", "\xef\x81\xb5", "\xef\x82\xac", "\xef\x84\xb5", "\xef\x84\xa1", "\xef\x84\x9b", "\xef\x86\x98", "\xef\x80\x81", "SP", "SP2", "OLR", "AI", "STM", "SSH" };
+/* tagging — nerd font icons: web, chat, term, team, rocket, code, game, slack, music */
+static const char *tags[] = { "\xef\x82\xac", "\xef\x81\xb5", "\xef\x92\x89", "\xef\x83\x80", "\xef\x84\xb5", "\xef\x84\xa1", "\xef\x84\x9b", "\xef\x86\x98", "\xef\x80\x81", "SP", "SP2", "OLR", "AI", "STM", "SSH" };
 #define SCRATCHPAD_TAG (1 << (LENGTH(tags) - 6))
 #define BTOP_SCRATCHPAD_TAG (1 << (LENGTH(tags) - 5))
 #define OLR_SCRATCHPAD_TAG (1 << (LENGTH(tags) - 4))
@@ -42,88 +42,92 @@ static const Rule rules[] = {
 	 *   WM_CLASS(STRING) = instance, class
 	 *   WM_NAME(STRING) = title
 	 *
-	 * 4-monitor pertag rules (left-to-right tag layout):
-	 *   Mon 0 (HDMI-0, portrait left, x=0):
-	 *     - Terminals (>_) -> tag 1 (1<<0)
-	 *     - Chat (tms/cht) -> tag 2 (1<<1)
-	 *   Mon 2 (DP-2, 4K 60Hz, x=1092):
-	 *     - Browsers (www) -> tag 3 (1<<2)
-	 *   Mon 1 (DP-0, 4K 144Hz PRIMARY, x=4932):
-	 *     - Agents/Cmdr (agt) -> tag 4 (1<<3)
-	 *     - Code (dev) -> tag 5 (1<<4)
-	 *   Mon 3 (DP-4, portrait right, x=8772):
-	 *     - Games (stm) -> tag 6 (1<<5)
-	 *     - Monitoring (mon) -> tag 7 (1<<6)
-	 *     - Media (med) -> tag 9 (1<<8)
+	 * 2-monitor pertag rules:
+	 *   Mon 0 (DP-2, left):
+	 *     - Browsers (www) -> tag 1 (1<<0)
+	 *     - Chat (cht) -> tag 2 (1<<1)
+	 *   Mon 1 (DP-0, right):
+	 *     - Terminals (>_) -> tag 3 (1<<2)
+	 *     - Teams (tms) -> tag 4 (1<<3)
+	 *     - Code/Agents -> tag 5 (1<<4)
+	 *     - Games -> tag 7 (1<<6)
+	 *     - Media -> tag 9 (1<<8)
 	 *   Scratchpads: floating, monitor -1 (follow focus)
 	 */
-	/* class              instance  title  tags mask              isfloating  monitor  iscentered  bw  borderscheme  bordertitle */
+	/* class              instance  title           tags mask              isfloating  monitor  iscentered  bw  borderscheme  bordertitle  floatw  floath */
 
 	/* --- Floating utilities (follow focus) --- */
-	{"Gimp",              NULL,     NULL,  0,                     1,          -1,      0,          -1, -1,           NULL},
+	{"Gimp",              NULL,     NULL,           0,                     1,          -1,      0,          -1, -1,           NULL,        0,      0},
 
 	/* --- Scratchpads: floating, follow focus (mon -1) --- */
-	{"term-scratchpad",   NULL,     NULL,  SCRATCHPAD_TAG,        1,          -1,      0,          -1, -1,           NULL},
-	{"btop-scratchpad",   NULL,     NULL,  BTOP_SCRATCHPAD_TAG,   1,          -1,      0,          -1, -1,           NULL},
-	{"olr-scratchpad",    NULL,     NULL,  OLR_SCRATCHPAD_TAG,    1,          -1,      1,           1, SchemeOlr,    "olr"},
-	{"ai-scratchpad",     NULL,     NULL,  AI_SCRATCHPAD_TAG,     1,          -1,      0,           1, SchemeAI,     "AI"},
-	{"stm-scratchpad",    NULL,     NULL,  STEAM_SCRATCHPAD_TAG,  1,          -1,      1,           1, SchemeSteam,  "Steam"},
-	{"ssh-scratchpad",    NULL,     NULL,  SSH_SCRATCHPAD_TAG,    1,          -1,      0,          -1, -1,           NULL},
+	{"term-scratchpad",   NULL,     NULL,           SCRATCHPAD_TAG,        1,          -1,      0,          -1, -1,           NULL,        0,      0},
+	{"btop-scratchpad",   NULL,     NULL,           BTOP_SCRATCHPAD_TAG,   1,          -1,      0,          -1, -1,           NULL,        0,      0},
+	{"olr-scratchpad",    NULL,     NULL,           OLR_SCRATCHPAD_TAG,    1,          -1,      1,           1, SchemeOlr,    "olr",       0,      0},
+	{"ai-scratchpad",     NULL,     NULL,           AI_SCRATCHPAD_TAG,     1,          -1,      0,           1, SchemeAI,     "AI",        0,      0},
+	{"stm-scratchpad",    NULL,     NULL,           STEAM_SCRATCHPAD_TAG,  1,          -1,      1,           1, SchemeSteam,  "Steam",     0,      0},
+	{"ssh-scratchpad",    NULL,     NULL,           SSH_SCRATCHPAD_TAG,    1,          -1,      0,          -1, -1,           NULL,        0,      0},
 
 	/* --- Floating overlays (follow focus) --- */
-	{"wezterm-lf",        NULL,     NULL,  0,                     1,          -1,      1,           1, SchemeOlr,    "lf"},
-	{"wezterm-tabtiler",  NULL,     NULL,  0,                     1,          -1,      1,           1, SchemeOlr,    "tiles"},
+	{"wezterm-lf",        NULL,     NULL,           0,                     1,          -1,      1,           1, SchemeOlr,    "lf",        0,      0},
+	{"wezterm-tabtiler",  NULL,     NULL,           0,                     1,          -1,      1,           1, SchemeOlr,    "tiles",     0,      0},
 
-	/* --- Mon 1 (DP-0 144Hz PRIMARY): Tag 4 (terminals, 1<<3) --- */
-	{"St",                    NULL,     NULL,  1 << 3,            0,           1,      1,          -1, -1,           NULL},
-	{"org.wezfurlong.wezterm",NULL,     NULL,  1 << 3,            0,           1,      0,          -1, -1,           NULL},
-	{"wireshark",             NULL,     NULL,  1 << 3,            0,           1,      -1,         -1, -1,           NULL},
+	/* --- Mon 1 (DP-2): Tag 1 (browsers, 1<<0) --- */
+	{"firefox",               NULL,     NULL,       1,                 0,           1,      0,          -1, -1,           NULL,        0,      0},
+	{"Vivaldi-stable",        NULL,     NULL,       1,                 0,           1,      0,          -1, -1,           NULL,        0,      0},
+	{"Vivaldi-flatpak",       NULL,     NULL,       1,                 0,           1,      0,          -1, -1,           NULL,        0,      0},
+	{"chromium",              NULL,     NULL,       1,                 0,           1,      0,          -1, -1,           NULL,        0,      0},
+	{"qutebrowser",           NULL,     NULL,       1,                 0,           1,      0,          -1, -1,           NULL,        0,      0},
+	{"Google-chrome",         NULL,     NULL,       1,                 0,           1,      0,          -1, -1,           NULL,        0,      0},
 
-	/* --- Mon 2 (DP-2 60Hz): Tag 2 (chat, 1<<1) --- */
-	{"teams-for-linux",       NULL,     NULL,  1 << 1,            0,           2,      0,          -1, -1,           NULL},
-	{"Slack",                 NULL,     NULL,  1 << 1,            0,           2,      0,          -1, -1,           NULL},
-	{"discord",               NULL,     NULL,  1 << 1,            0,           2,      0,          -1, -1,           NULL},
-	{"ZapZap",                NULL,     NULL,  1 << 1,            0,           2,      0,          -1, -1,           NULL},
-	{"Electron",              NULL,     NULL,  1 << 1,            0,           2,      0,          -1, -1,           NULL},
+	/* --- Mon 1 (DP-2): Tag 2 (chat, 1<<1) --- */
+	{"teams-for-linux",       NULL,     NULL,       1 << 1,            0,           1,      0,          -1, -1,           NULL,        0,      0},
+	{"Slack",                 NULL,     NULL,       1 << 1,            0,           1,      0,          -1, -1,           NULL,        0,      0},
+	{"discord",               NULL,     NULL,       1 << 1,            0,           1,      0,          -1, -1,           NULL,        0,      0},
+	{"ZapZap",                NULL,     NULL,       1 << 1,            0,           1,      0,          -1, -1,           NULL,        0,      0},
+	{"Electron",              NULL,     NULL,       1 << 1,            0,           1,      0,          -1, -1,           NULL,        0,      0},
 
-	/* --- Mon 2 (DP-2 60Hz): Tag 3 (browsers, 1<<2) --- */
-	{"firefox",               NULL,     NULL,  1 << 2,            0,           2,      0,          -1, -1,           NULL},
-	{"Vivaldi-stable",        NULL,     NULL,  1 << 2,            0,           2,      0,          -1, -1,           NULL},
-	{"Vivaldi-flatpak",       NULL,     NULL,  1 << 2,            0,           2,      0,          -1, -1,           NULL},
-	{"chromium",              NULL,     NULL,  1 << 2,            0,           2,      0,          -1, -1,           NULL},
-	{"qutebrowser",           NULL,     NULL,  1 << 2,            0,           2,      0,          -1, -1,           NULL},
-	{"Google-chrome",         NULL,     NULL,  1 << 2,            0,           2,      0,          -1, -1,           NULL},
+	/* --- Mon 0 (DP-0): Tag 3 (terminals, 1<<2) --- */
+	{"St",                    NULL,     NULL,       1 << 2,            0,           0,      1,          -1, -1,           NULL,        0,      0},
+	{"org.wezfurlong.wezterm",NULL,     NULL,       1 << 2,            0,           0,      0,          -1, -1,           NULL,        0,      0},
+	{"wireshark",             NULL,     NULL,       1 << 2,            0,           0,      -1,         -1, -1,           NULL,        0,      0},
 
-	/* --- Mon 2 (DP-2 60Hz): Tag 3 (agents/cmdr, 1<<2) --- */
-	{"cmdr-dashboard",        NULL,     NULL,  1 << 2,            0,           2,      0,          -1, -1,           NULL},
-	{"cmdr-terminal",         NULL,     NULL,  1 << 2,            0,           2,      0,          -1, -1,           NULL},
-	{"overstory-terminal",    NULL,     NULL,  1 << 2,            0,           2,      0,          -1, -1,           NULL},
-	{"cmdr-feed",             NULL,     NULL,  1 << 2,            0,           2,      0,          -1, -1,           NULL},
-	{"cmdr-costs",            NULL,     NULL,  1 << 2,            0,           2,      0,          -1, -1,           NULL},
-	{"cmdr-logs",             NULL,     NULL,  1 << 2,            0,           2,      0,          -1, -1,           NULL},
-	{"cmdr-errors",           NULL,     NULL,  1 << 2,            0,           2,      0,          -1, -1,           NULL},
+	/* --- Mon 0 (DP-0): Tag 4 (team/agents, 1<<3) --- */
+	{"cmdr-dashboard",        NULL,     NULL,       1 << 3,            0,           0,      0,          -1, -1,           NULL,        0,      0},
+	{"cmdr-terminal",         NULL,     NULL,       1 << 3,            0,           0,      0,          -1, -1,           NULL,        0,      0},
+	{"overstory-terminal",    NULL,     NULL,       1 << 3,            0,           0,      0,          -1, -1,           NULL,        0,      0},
+	{"cmdr-feed",             NULL,     NULL,       1 << 3,            0,           0,      0,          -1, -1,           NULL,        0,      0},
+	{"cmdr-costs",            NULL,     NULL,       1 << 3,            0,           0,      0,          -1, -1,           NULL,        0,      0},
+	{"cmdr-logs",             NULL,     NULL,       1 << 3,            0,           0,      0,          -1, -1,           NULL,        0,      0},
+	{"cmdr-errors",           NULL,     NULL,       1 << 3,            0,           0,      0,          -1, -1,           NULL,        0,      0},
 
-	/* --- Mon 1 (DP-0 144Hz): Tag 5 (games, 1<<4) --- */
-	{"steam",                 NULL,     NULL,  1 << 4,            0,           1,      0,          -1, -1,           NULL},
+	/* --- Mon 0 (DP-0): games (1<<6) --- */
+	{"steam",                 NULL,     NULL,       1 << 6,            0,           0,      0,          -1, -1,           NULL,        0,      0},
 
-	/* --- Mon 3 (DP-4 portrait): Tag 9 (media, 1<<8) --- */
-	{"mpv",                   NULL,     NULL,  1 << 8,            0,           3,      0,          -1, -1,           NULL},
+	/* --- Mon 0 (DP-0): media (1<<8) --- */
+	{"mpv",                   NULL,     NULL,       1 << 8,            0,           0,      0,          -1, -1,           NULL,        0,      0},
+
+	/*
+	 * Trustgraph / localhost:3000 — use Vivaldi app mode:
+	 *   vivaldi --app=http://localhost:3000
+	 * This creates a separate X11 window with "trustgraph" or "localhost" in the title.
+	 * NOTE: Regular browser tabs CANNOT be targeted by dwm rules (all tabs share one X11 window).
+	 */
+	{NULL,                    NULL,     "trustgraph", 0,               1,          -1,      1,          -1, -1,           NULL,        1200,   900},
+	{NULL,                    NULL,     "localhost",  0,               1,          -1,      1,          -1, -1,           NULL,        1200,   900},
 };
 
 /* default tags per monitor (index = monitor number) */
 static const unsigned int defaulttags[] = {
-    1 << 0,   /* mon 0 (HDMI-0): tag 1 */
-    1 << 3,   /* mon 1 (DP-0):   tag 4 */
-    1 << 1,   /* mon 2 (DP-2):   tag 2 */
-    1 << 5,   /* mon 3 (DP-4):   tag 6 */
+    1 << 2,   /* mon 0 (DP-0):  tag 3 (>_)  */
+    1 << 0,   /* mon 1 (DP-2):  tag 1 (www) */
 };
 
 /* tag-to-monitor map: which monitor owns each tag (index = tag index) */
-static const int tagmonmap[] = { 0, 2, 2, 1, 1, 3, 3, 3, 3 };
+static const int tagmonmap[] = { 1, 1, 0, 0, 0, 0, 0, 0, 0 };
 /*                                ^  ^  ^  ^  ^  ^  ^  ^  ^
  *                           tag: 1  2  3  4  5  6  7  8  9
- *                          icon: >_ tm ch ww ag cd gm mn mu
- *                           mon: 0  2  2  1  1  3  3  3  3  */
+ *                          icon: ww ch >_ tm rk cd gm sl mu
+ *                           mon: 1  1  0  0  0  0  0  0  0  */
 
 /* layout(s) */
 const float mfact     = 0.55; /* factor of master area size [0.05..0.95] */
@@ -153,7 +157,7 @@ static const Layout layouts[] = {
 #define STATUSBAR "dwmblocks"
 
 /* commands */
-static char dmenumon[2] = "1"; /* component of dmenucmd, DP-0 (primary working monitor, mon 1) */
+static char dmenumon[2] = "1"; /* component of dmenucmd, DP-2 (mon 1) */
 static const char *dmenucmd[] = { "dmenu_run", "-m", dmenumon, "-fn", dmenufont, "-nb", col_gray1, "-nf", col_gray3, "-sb", col_cyan, "-sf", col_gray4, NULL };
 static const char *termcmd[]  = { "wezterm", NULL };
 static const char *lyxcmd[]  = { "wezterm", "-e", "lyx", NULL };
@@ -171,12 +175,12 @@ static const char *volumeMute[]  = { "/home/n0ko/scripts/volume.sh", "mute", NUL
 static const char *cal[]  = { "wezterm", "-e", "calcurse", NULL };
 static const char *top[]  = { "wezterm", "-e", "btop", NULL };
 static const char *yazi[]  = { "/home/n0ko/scripts/fm-launcher.sh", "yazi", NULL };
-static const char *scratchpadcmd[] = {"wezterm", "start", "--class", "term-scratchpad", NULL};
-static const char *btopscratchpadcmd[] = {"wezterm", "start", "--class", "btop-scratchpad", "--", "btop", NULL};
-static const char *olrscratchpadcmd[] = {"wezterm", "start", "--class", "olr-scratchpad", "--", "/usr/local/bin/olr", NULL};
-static const char *aiscratchpadcmd[] = {"wezterm", "start", "--class", "ai-scratchpad", "--", "/home/n0ko/misc/hostlister.sh", NULL};
-static const char *steamscratchpadcmd[] = {"wezterm", "start", "--class", "stm-scratchpad", "--", "/home/n0ko/scripts/steam_launcher.zsh", NULL};
-static const char *sshscratchpadcmd[] = {"wezterm", "start", "--class", "ssh-scratchpad", "--", "ssh", "-t", "base", "zellij", "attach", "-c", "default", NULL};
+static const char *scratchpadcmd[] = {"/home/n0ko/scripts/wezterm-egl-fix.sh", "start", "--class", "term-scratchpad", "--always-new-process", NULL};
+static const char *btopscratchpadcmd[] = {"/home/n0ko/scripts/wezterm-egl-fix.sh", "start", "--class", "btop-scratchpad", "--always-new-process", "--", "btop", NULL};
+static const char *olrscratchpadcmd[] = {"/home/n0ko/scripts/wezterm-egl-fix.sh", "start", "--class", "olr-scratchpad", "--always-new-process", "--", "/usr/local/bin/olr", NULL};
+static const char *aiscratchpadcmd[] = {"/home/n0ko/scripts/wezterm-egl-fix.sh", "start", "--class", "ai-scratchpad", "--always-new-process", "--", "/home/n0ko/misc/hostlister.sh", NULL};
+static const char *steamscratchpadcmd[] = {"/home/n0ko/scripts/wezterm-egl-fix.sh", "start", "--class", "stm-scratchpad", "--always-new-process", "--", "/home/n0ko/scripts/steam_launcher.zsh", NULL};
+static const char *sshscratchpadcmd[] = {"/home/n0ko/scripts/wezterm-egl-fix.sh", "start", "--class", "ssh-scratchpad", "--always-new-process", "--", "ssh", "-t", "base", "zellij", "attach", "-c", "default", NULL};
 static const char *scrot_precision[] = { "/bin/sh", "-c", "scrot -s -e 'xclip -selection clipboard -t image/png -i $f && notify-send \"Screenshot Precision\" \"Copied to clipboard\"'", NULL };
 static const char *slockcmd[] = { "/home/n0ko/scripts/slock-dpms.sh", NULL };
 static const char *restartdwm[] = { "/home/n0ko/scripts/dwm-hotswap-pertag.sh", NULL };
@@ -187,6 +191,16 @@ static const char *brightnessMid[] = { "/home/n0ko/scripts/brightnessMid.sh", NU
 static const char *xboxConnect[] = { "/home/n0ko/scripts/xbox.sh", NULL };
 static const char *vivaldileadercmd[] = { "/home/n0ko/.local/bin/vivaldi-leader.sh", NULL };
 static const char *dwmleadercmd[] = { "/home/n0ko/.local/bin/dwm-leader.sh", NULL };
+
+/* moveresize direction vectors: {dx, dy, dw, dh} */
+static const int moveresizedelta_up[]    = {  0, -25,   0,   0 };
+static const int moveresizedelta_down[]  = {  0,  25,   0,   0 };
+static const int moveresizedelta_left[]  = { -25,  0,   0,   0 };
+static const int moveresizedelta_right[] = {  25,  0,   0,   0 };
+static const int moveresizedelta_sh[]    = {  0,   0,   0, -25 }; /* shrink height */
+static const int moveresizedelta_gh[]    = {  0,   0,   0,  25 }; /* grow height */
+static const int moveresizedelta_sw[]    = {  0,   0, -25,   0 }; /* shrink width */
+static const int moveresizedelta_gw[]    = {  0,   0,  25,   0 }; /* grow width */
 
 static const Key keys[] = {
 	/* modifier                     key        function        argument */
@@ -237,6 +251,14 @@ static const Key keys[] = {
 	{ MODKEY,                       XK_f,      setlayout,      {.v = &layouts[1]} },
 	{ MODKEY,                       XK_space,  setlayout,      {0} },
 	{ MODKEY|ShiftMask,             XK_space,  togglefloating, {0} },
+	{ MODKEY,                       XK_Up,     moveresize,     {.v = moveresizedelta_up } },
+	{ MODKEY,                       XK_Down,   moveresize,     {.v = moveresizedelta_down } },
+	{ MODKEY,                       XK_Left,   moveresize,     {.v = moveresizedelta_left } },
+	{ MODKEY,                       XK_Right,  moveresize,     {.v = moveresizedelta_right } },
+	{ MODKEY|ShiftMask,             XK_Up,     moveresize,     {.v = moveresizedelta_gh } },
+	{ MODKEY|ShiftMask,             XK_Down,   moveresize,     {.v = moveresizedelta_sh } },
+	{ MODKEY|ShiftMask,             XK_Left,   moveresize,     {.v = moveresizedelta_sw } },
+	{ MODKEY|ShiftMask,             XK_Right,  moveresize,     {.v = moveresizedelta_gw } },
 	{ MODKEY,                       XK_0,      view,           {.ui = ~0 } },
 	{ MODKEY|ShiftMask,             XK_0,      tag,            {.ui = ~0 } },
 	{ MODKEY,                       XK_comma,  focusmon,       {.i = -1 } },
@@ -244,10 +266,14 @@ static const Key keys[] = {
 	{ MODKEY|ShiftMask,             XK_comma,  tagmon,         {.i = -1 } },
 	{ MODKEY|ShiftMask,             XK_period, tagmon,         {.i = +1 } },
 	TAGKEYS(                        XK_1,                      0)  /* www */
-	TAGKEYS(                        XK_2,                      1)  /* tms */
-	TAGKEYS(                        XK_3,                      2)  /* slk */
-	TAGKEYS(                        XK_4,                      3)  /* >_ */
-	TAGKEYS(                        XK_5,                      4)  /* stm */
+	TAGKEYS(                        XK_2,                      1)  /* cht */
+	TAGKEYS(                        XK_3,                      2)  /* >_  */
+	TAGKEYS(                        XK_4,                      3)  /* tms */
+	TAGKEYS(                        XK_5,                      4)  /* rkt */
+	TAGKEYS(                        XK_6,                      5)  /* cod */
+	TAGKEYS(                        XK_7,                      6)  /* gam */
+	TAGKEYS(                        XK_8,                      7)  /* slk */
+	TAGKEYS(                        XK_9,                      8)  /* mus */
 	{ MODKEY|ShiftMask,             XK_q,      quit,           {0} },
 };
 
