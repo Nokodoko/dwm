@@ -62,7 +62,7 @@ enum { CurNormal, CurResize, CurMove, CurLast }; /* cursor */
 enum { SchemeNorm, SchemeSel, SchemeOlr, SchemeAI, SchemeSteam }; /* color schemes */
 enum { NetSupported, NetWMName, NetWMState, NetWMCheck,
        NetWMFullscreen, NetActiveWindow, NetWMWindowType,
-       NetWMWindowTypeDialog, NetClientList, NetLast }; /* EWMH atoms */
+       NetWMWindowTypeDialog, NetWMWindowTypeDesktop, NetClientList, NetLast }; /* EWMH atoms */
 enum { WMProtocols, WMDelete, WMState, WMTakeFocus, WMLast }; /* default atoms */
 enum { ClkTagBar, ClkLtSymbol, ClkStatusText, ClkWinTitle,
        ClkClientWin, ClkRootWin, ClkLast }; /* clicks */
@@ -95,6 +95,7 @@ struct Client {
 	int borderscheme;
 	unsigned int tags;
 	int isfixed, isfloating, isurgent, neverfocus, oldstate, isfullscreen, iscentered;
+	int floatw, floath;
 	Client *next;
 	Client *snext;
 	Monitor *mon;
@@ -148,6 +149,8 @@ typedef struct {
 	int bw;
 	int borderscheme;
 	const char *bordertitle;
+	int floatw;
+	int floath;
 } Rule;
 
 /* function declarations */
@@ -183,6 +186,7 @@ static void focusstack(const Arg *arg);
 static Atom getatomprop(Client *c, Atom prop);
 static int getrootptr(int *x, int *y);
 static long getstate(Window w);
+static int isdesktopwindow(Window w);
 static pid_t getstatusbarpid();
 static int gettextprop(Window w, Atom atom, char *text, unsigned int size);
 static void grabbuttons(Client *c, int focused);
@@ -199,6 +203,7 @@ static void movemouse(const Arg *arg);
 static Client *nexttiled(Client *c);
 static void pop(Client *c);
 static void propertynotify(XEvent *e);
+static void moveresize(const Arg *arg);
 static void quit(const Arg *arg);
 static Monitor *recttomon(int x, int y, int w, int h);
 static void resize(Client *c, int x, int y, int w, int h, int interact);
@@ -317,6 +322,8 @@ applyrules(Client *c)
 	c->tags = 0;
 	c->borderscheme = -1;
 	c->bordertitle[0] = '\0';
+	c->floatw = 0;
+	c->floath = 0;
 	XGetClassHint(dpy, c->win, &ch);
 	class    = ch.res_class ? ch.res_class : broken;
 	instance = ch.res_name  ? ch.res_name  : broken;
@@ -336,6 +343,10 @@ applyrules(Client *c)
 				c->borderscheme = r->borderscheme;
 			if (r->bordertitle)
 				strncpy(c->bordertitle, r->bordertitle, sizeof(c->bordertitle) - 1);
+			if (r->floatw > 0)
+				c->floatw = r->floatw;
+			if (r->floath > 0)
+				c->floath = r->floath;
 			for (m = mons; m && m->num != r->monitor; m = m->next);
 			if (m)
 				c->mon = m;
@@ -1164,6 +1175,22 @@ getstate(Window w)
 }
 
 int
+isdesktopwindow(Window w)
+{
+	int di;
+	unsigned long dl;
+	unsigned char *p = NULL;
+	Atom da, atom = None;
+
+	if (XGetWindowProperty(dpy, w, netatom[NetWMWindowType], 0L, sizeof atom, False, XA_ATOM,
+		&da, &di, &dl, &dl, &p) == Success && p) {
+		atom = *(Atom *)p;
+		XFree(p);
+	}
+	return atom == netatom[NetWMWindowTypeDesktop];
+}
+
+int
 gettextprop(Window w, Atom atom, char *text, unsigned int size)
 {
 	char **list = NULL;
@@ -1238,7 +1265,7 @@ grabkeys(void)
 void
 incnmaster(const Arg *arg)
 {
-	selmon->nmaster = selmon->pertag->nmasters[selmon->pertag->curtag] = MAX(selmon->nmaster + arg->i, 0);
+	selmon->nmaster = selmon->pertag->nmasters[selmon->pertag->curtag] = arg->i ? MAX(selmon->nmaster + arg->i, 0) : nmaster;
 	arrange(selmon);
 }
 
@@ -1348,6 +1375,12 @@ manage(Window w, XWindowAttributes *wa)
 		arrange(c->mon);
 	focus(c);
 
+	if (c->isfloating && (c->floatw > 0 || c->floath > 0)) {
+		if (c->floatw > 0)
+			c->w = c->floatw;
+		if (c->floath > 0)
+			c->h = c->floath;
+	}
 	if(c->iscentered) {
 		c->x = selmon->wx + (selmon->ww - WIDTH(c)) / 2;
 		c->y = selmon->wy + (selmon->wh - HEIGHT(c)) / 2;
@@ -1411,6 +1444,13 @@ maprequest(XEvent *e)
 
 	if (!XGetWindowAttributes(dpy, ev->window, &wa) || wa.override_redirect)
 		return;
+	/* Desktop-type windows (glava, conky, etc.) should not be managed —
+	 * just map them and let them sit below all other windows. */
+	if (isdesktopwindow(ev->window)) {
+		XMapWindow(dpy, ev->window);
+		XLowerWindow(dpy, ev->window);
+		return;
+	}
 	if (!wintoclient(ev->window))
 		manage(ev->window, &wa);
 }
@@ -1505,6 +1545,38 @@ movemouse(const Arg *arg)
 		selmon = m;
 		focus(NULL);
 	}
+}
+
+void
+moveresize(const Arg *arg)
+{
+	Client *c;
+	int x, y, w, h, nx, ny, nw, nh;
+	const int *delta = (const int *)arg->v;
+
+	if (!(c = selmon->sel))
+		return;
+	if (c->isfullscreen)
+		return;
+
+	/* auto-float the window if it's tiled */
+	if (!c->isfloating && selmon->lt[selmon->sellt]->arrange)
+		togglefloating(NULL);
+
+	x = c->x;
+	y = c->y;
+	w = c->w;
+	h = c->h;
+
+	nx = x + delta[0];
+	ny = y + delta[1];
+	nw = MAX(w + delta[2], 1);
+	nh = MAX(h + delta[3], 1);
+
+	if (delta[2] != 0 || delta[3] != 0)
+		resizeclient(c, nx, ny, nw, nh);
+	else
+		resize(c, nx, ny, nw, nh, 1);
 }
 
 Client *
@@ -1708,6 +1780,8 @@ scan(void)
 			if (!XGetWindowAttributes(dpy, wins[i], &wa)
 			|| wa.override_redirect || XGetTransientForHint(dpy, wins[i], &d1))
 				continue;
+			if (isdesktopwindow(wins[i]))
+				continue;
 			if (wa.map_state == IsViewable || getstate(wins[i]) == IconicState)
 				manage(wins[i], &wa);
 		}
@@ -1884,6 +1958,7 @@ setup(void)
 	netatom[NetWMFullscreen] = XInternAtom(dpy, "_NET_WM_STATE_FULLSCREEN", False);
 	netatom[NetWMWindowType] = XInternAtom(dpy, "_NET_WM_WINDOW_TYPE", False);
 	netatom[NetWMWindowTypeDialog] = XInternAtom(dpy, "_NET_WM_WINDOW_TYPE_DIALOG", False);
+	netatom[NetWMWindowTypeDesktop] = XInternAtom(dpy, "_NET_WM_WINDOW_TYPE_DESKTOP", False);
 	netatom[NetClientList] = XInternAtom(dpy, "_NET_CLIENT_LIST", False);
 	/* init cursors */
 	cursor[CurNormal] = drw_cur_create(drw, XC_left_ptr);
@@ -1990,7 +2065,38 @@ spawn(const Arg *arg)
 void
 tag(const Arg *arg)
 {
-	if (selmon->sel && arg->ui & TAGMASK) {
+	int i, targetmon;
+	Monitor *m;
+
+	if (!selmon->sel || !(arg->ui & TAGMASK))
+		return;
+
+	/* find which tag bit is set */
+	for (i = 0; !(arg->ui & 1 << i); i++) ;
+
+	/* look up the owning monitor for this tag */
+	if (i < LENGTH(tagmonmap))
+		targetmon = tagmonmap[i];
+	else
+		targetmon = selmon->num;
+
+	/* find the target monitor */
+	for (m = mons; m && m->num != targetmon; m = m->next) ;
+	if (!m)
+		m = selmon;
+
+	/* send to target monitor if different */
+	if (m != selmon) {
+		unfocus(selmon->sel, 1);
+		detach(selmon->sel);
+		detachstack(selmon->sel);
+		selmon->sel->mon = m;
+		selmon->sel->tags = arg->ui & TAGMASK;
+		attach(selmon->sel);
+		attachstack(selmon->sel);
+		focus(NULL);
+		arrange(NULL);
+	} else {
 		selmon->sel->tags = arg->ui & TAGMASK;
 		focus(NULL);
 		arrange(selmon);
