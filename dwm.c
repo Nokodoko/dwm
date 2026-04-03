@@ -437,8 +437,10 @@ arrange(Monitor *m)
 	if (m) {
 		arrangemon(m);
 		restack(m);
-	} else for (m = mons; m; m = m->next)
+	} else for (m = mons; m; m = m->next) {
 		arrangemon(m);
+		restack(m);
+	}
 }
 
 void
@@ -2067,9 +2069,14 @@ tag(const Arg *arg)
 {
 	int i, targetmon;
 	Monitor *m;
+	Client *c;
+	Monitor *origmon;
 
 	if (!selmon->sel || !(arg->ui & TAGMASK))
 		return;
+
+	c = selmon->sel;
+	origmon = selmon;
 
 	/* find which tag bit is set */
 	for (i = 0; !(arg->ui & 1 << i); i++) ;
@@ -2086,18 +2093,36 @@ tag(const Arg *arg)
 		m = selmon;
 
 	/* send to target monitor if different */
-	if (m != selmon) {
-		unfocus(selmon->sel, 1);
-		detach(selmon->sel);
-		detachstack(selmon->sel);
-		selmon->sel->mon = m;
-		selmon->sel->tags = arg->ui & TAGMASK;
-		attach(selmon->sel);
-		attachstack(selmon->sel);
+	if (m != origmon) {
+		unfocus(c, 1);
+		detach(c);
+		detachstack(c);
+		c->mon = m;
+		c->tags = arg->ui & TAGMASK;
+		attach(c);
+		attachstack(c);
+		/* switch target monitor's view to the destination tag if not already shown */
+		if (!(m->tagset[m->seltags] & (arg->ui & TAGMASK))) {
+			m->seltags ^= 1;
+			m->tagset[m->seltags] = arg->ui & TAGMASK;
+		}
+		/* always sync target monitor's pertag state for the destination tag */
+		m->pertag->prevtag = m->pertag->curtag;
+		m->pertag->curtag = i + 1;
+		m->nmaster = m->pertag->nmasters[m->pertag->curtag];
+		m->mfact = m->pertag->mfacts[m->pertag->curtag];
+		m->sellt = m->pertag->sellts[m->pertag->curtag];
+		m->lt[m->sellt] = m->pertag->ltidxs[m->pertag->curtag][m->sellt];
+		m->lt[m->sellt^1] = m->pertag->ltidxs[m->pertag->curtag][m->sellt^1];
+		if (m->showbar != m->pertag->showbars[m->pertag->curtag]) {
+			m->showbar = m->pertag->showbars[m->pertag->curtag];
+			updatebarpos(m);
+		}
 		focus(NULL);
-		arrange(NULL);
+		arrange(origmon);
+		arrange(m);
 	} else {
-		selmon->sel->tags = arg->ui & TAGMASK;
+		c->tags = arg->ui & TAGMASK;
 		focus(NULL);
 		arrange(selmon);
 	}
