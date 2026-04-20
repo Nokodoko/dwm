@@ -92,6 +92,7 @@ static const Rule rules[] = {
 	/* --- Mon 1 (DP-9, 144Hz): Tag 3 (terminals, 1<<2) --- */
 	{"St",                    NULL,     NULL,       1 << 2,            0,           1,      1,          -1, -1,           NULL,        0,      0},
 	{"org.wezfurlong.wezterm",NULL,     NULL,       1 << 2,            0,           1,      0,          -1, -1,           NULL,        0,      0},
+	{"neovide",               NULL,     NULL,       1 << 2,            0,           1,      0,          -1, -1,           NULL,        0,      0},
 	{"wireshark",             NULL,     NULL,       1 << 2,            0,           1,      -1,         -1, -1,           NULL,        0,      0},
 
 	/* --- Mon 1 (DP-9, 144Hz): Tag 4 (team/agents, 1<<3) --- */
