@@ -57,19 +57,20 @@ static const Rule rules[] = {
 	/* class              instance  title           tags mask              isfloating  monitor  iscentered  bw  borderscheme  bordertitle  floatw  floath */
 
 	/* --- Floating utilities (follow focus) --- */
-	{"Gimp",              NULL,     NULL,           0,                     1,          -1,      0,          -1, -1,           NULL,        0,      0},
+	{"Gimp",              NULL,     NULL,           0,                     1,          -1,      0,          -1, -1,           NULL,        1200,   900},
 
 	/* --- Scratchpads: floating, follow focus (mon -1) --- */
-	{"term-scratchpad",   NULL,     NULL,           SCRATCHPAD_TAG,        1,          -1,      0,          -1, -1,           NULL,        0,      0},
-	{"btop-scratchpad",   NULL,     NULL,           BTOP_SCRATCHPAD_TAG,   1,          -1,      0,          -1, -1,           NULL,        0,      0},
-	{"olr-scratchpad",    NULL,     NULL,           OLR_SCRATCHPAD_TAG,    1,          -1,      1,           1, SchemeOlr,    "olr",       0,      0},
-	{"ai-scratchpad",     NULL,     NULL,           AI_SCRATCHPAD_TAG,     1,          -1,      0,           1, SchemeAI,     "AI",        0,      0},
-	{"stm-scratchpad",    NULL,     NULL,           STEAM_SCRATCHPAD_TAG,  1,          -1,      1,           1, SchemeSteam,  "Steam",     0,      0},
-	{"ssh-scratchpad",    NULL,     NULL,           SSH_SCRATCHPAD_TAG,    1,          -1,      0,          -1, -1,           NULL,        0,      0},
+	{"term-scratchpad",   NULL,     NULL,           SCRATCHPAD_TAG,        1,          -1,      0,          -1, -1,           NULL,        1200,   900},
+	{"btop-scratchpad",   NULL,     NULL,           BTOP_SCRATCHPAD_TAG,   1,          -1,      0,          -1, -1,           NULL,        1200,   900},
+	{"olr-scratchpad",    NULL,     NULL,           OLR_SCRATCHPAD_TAG,    1,          -1,      1,           1, SchemeOlr,    "olr",       1200,   900},
+	{"ai-scratchpad",     NULL,     NULL,           AI_SCRATCHPAD_TAG,     1,          -1,      0,           1, SchemeAI,     "AI",        1200,   900},
+	{"stm-scratchpad",    NULL,     NULL,           STEAM_SCRATCHPAD_TAG,  1,          -1,      1,           1, SchemeSteam,  "Steam",     1200,   900},
+	{"ssh-scratchpad",    NULL,     NULL,           SSH_SCRATCHPAD_TAG,    1,          -1,      0,          -1, -1,           NULL,        1200,   900},
 
 	/* --- Floating overlays (follow focus) --- */
-	{"wezterm-lf",        NULL,     NULL,           0,                     1,          -1,      1,           1, SchemeOlr,    "lf",        0,      0},
-	{"wezterm-tabtiler",  NULL,     NULL,           0,                     1,          -1,      1,           1, SchemeOlr,    "tiles",     0,      0},
+	{"wezterm-lf",        NULL,     NULL,           0,                     1,          -1,      1,           1, SchemeOlr,    "lf",        1200,   900},
+	{"wezterm-tabtiler",  NULL,     NULL,           0,                     1,          -1,      1,           1, SchemeOlr,    "tiles",     1200,   900},
+	{"trustgraph-viewer", NULL,     NULL,           0,                     1,          -1,      0,          -1, -1,           NULL,        0,      0},
 
 	/* --- Mon 1 (DP-2): Tag 1 (browsers, 1<<0) --- */
 	{"firefox",               NULL,     NULL,       1,                 0,           0,      0,          -1, -1,           NULL,        0,      0},
@@ -176,7 +177,7 @@ static const char *volumeMute[]  = { "/home/n0ko/scripts/volume.sh", "mute", NUL
 static const char *cal[]  = { "/home/n0ko/scripts/wezterm-egl-fix.sh", "start", "--always-new-process", "--", "calcurse", NULL };
 static const char *top[]  = { "/home/n0ko/scripts/wezterm-egl-fix.sh", "start", "--always-new-process", "--", "btop", NULL };
 static const char *yazi[]  = { "/home/n0ko/scripts/fm-launcher.sh", "yazi", NULL };
-static const char *scratchpadcmd[] = {"/home/n0ko/scripts/wezterm-egl-fix.sh", "start", "--class", "term-scratchpad", "--always-new-process", NULL};
+static const char *scratchpadcmd[] = {"/bin/neovide", "--x11-wm-class=term-scratchpad", "--x11-wm-class-instance=term-scratchpad", "--frame=none", NULL};
 static const char *btopscratchpadcmd[] = {"/home/n0ko/scripts/wezterm-egl-fix.sh", "start", "--class", "btop-scratchpad", "--always-new-process", "--", "btop", NULL};
 static const char *olrscratchpadcmd[] = {"/home/n0ko/scripts/wezterm-egl-fix.sh", "start", "--class", "olr-scratchpad", "--always-new-process", "--", "/usr/local/bin/olr", NULL};
 static const char *aiscratchpadcmd[] = {"/home/n0ko/scripts/wezterm-egl-fix.sh", "start", "--class", "ai-scratchpad", "--always-new-process", "--", "/home/n0ko/misc/hostlister.sh", NULL};
@@ -184,6 +185,7 @@ static const char *steamscratchpadcmd[] = {"/home/n0ko/scripts/wezterm-egl-fix.s
 static const char *sshscratchpadcmd[] = {"/home/n0ko/scripts/wezterm-egl-fix.sh", "start", "--class", "ssh-scratchpad", "--always-new-process", "--", "ssh", "-t", "base", "zellij", "attach", "-c", "default", NULL};
 static const char *scrot_precision[] = { "/bin/sh", "-c", "scrot -s -e 'xclip -selection clipboard -t image/png -i $f && notify-send \"Screenshot Precision\" \"Copied to clipboard\"'", NULL };
 static const char *slockcmd[] = { "/home/n0ko/scripts/slock-dpms.sh", NULL };
+static const char *tgsnapcmd[] = { "/usr/local/bin/tg-snap", NULL };
 static const char *lewislayoutcmd[] = { "/home/n0ko/scripts/lewis-layout.sh", NULL };
 static const char *restartdwm[] = { "/home/n0ko/scripts/dwm-hotswap.sh", "pertag", NULL };
 static const char *restartdwm_wt[] = { "/home/n0ko/scripts/dwm-hotswap.sh", "pertag-multi", NULL };
@@ -191,6 +193,8 @@ static const char *restartdwm_base[] = { "/home/n0ko/scripts/dwm-hotswap.sh", "b
 static const char *brightnessUp[] = { "/home/n0ko/scripts/brightnessUp.sh", NULL };
 static const char *brightnessDown[] = { "/home/n0ko/scripts/brightnessDown.sh", NULL };
 static const char *brightnessMid[] = { "/home/n0ko/scripts/brightnessMid.sh", NULL };
+static const char *brightnessMax[] = { "/home/n0ko/scripts/brightnessMax.sh", NULL };
+static const char *brightnessMin[] = { "/home/n0ko/scripts/brightnessMin.sh", NULL };
 static const char *keybrightnessUp[] = { "/home/n0ko/scripts/keybrightnessUp.sh", NULL };
 static const char *keybrightnessDown[] = { "/home/n0ko/scripts/keybrightnessDown.sh", NULL };
 static const char *xboxConnect[] = { "/home/n0ko/scripts/xbox.sh", NULL };
@@ -216,8 +220,10 @@ static const Key keys[] = {
         { Mod1Mask,                     XK_r,      togglescratch,  {.v = steamscratchpadcmd } },
 	{ Mod1Mask|ShiftMask,           XK_s,      togglescratch,  {.v = sshscratchpadcmd } },
 	{ Mod1Mask|ControlMask,         XK_v,      spawn,          {.v = vivaldileadercmd } },
+	{ Mod1Mask|ControlMask,         XK_V,      spawn,          {.v = vivaldileadercmd } },
 	{ Mod1Mask,                     XK_t,      spawn,          {.v = dwmleadercmd } },
 	{ Mod1Mask,                     XK_c,      spawn,          {.v = xboxConnect } },
+	{ MODKEY,                       XK_F5,     spawn,          {.v = tgsnapcmd } },        /* snap tg-viewer to pane */
 	{ MODKEY,                       XK_r,      spawn,          {.v = restartdwm } },       /* -> pertag (single) */
 	{ MODKEY|ShiftMask,             XK_r,      spawn,          {.v = restartdwm_wt } },    /* -> pertag-multi */
 	{ MODKEY|ControlMask,           XK_r,      spawn,          {.v = restartdwm_base } },  /* -> base */
@@ -232,7 +238,7 @@ static const Key keys[] = {
 	{ 0,                            XF86XK_AudioRaiseVolume, spawn, {.v = volumeUp } },
 	{ 0,                            XF86XK_AudioLowerVolume, spawn, {.v = volumeDown } },
 	{ 0,                            XF86XK_AudioMute,        spawn, {.v = volumeMute } },
-	{ MODKEY|ShiftMask,             XK_p,      spawn,          {.v = pass} },
+	{ Mod1Mask|ShiftMask,           XK_p,      spawn,          {.v = pass} },
 	{ MODKEY|ShiftMask,             XK_w,      spawn,          {.v = wificmd} },
 	{ Mod1Mask|ShiftMask,           XK_t,      spawn,          {.v = top} },
   { Mod1Mask|ControlMask,         XK_Down,   spawn,          {.v = dhp } },
@@ -255,6 +261,9 @@ static const Key keys[] = {
 	{ MODKEY|ControlMask,           XK_m,      spawn,          {.v = brightnessMid } },
 	{ Mod1Mask|ControlMask,         XK_u,      spawn,          {.v = brightnessUp } },
 	{ Mod1Mask|ControlMask,         XK_i,      spawn,          {.v = brightnessDown } },
+	{ ControlMask|Mod4Mask|ShiftMask, XK_Up,     spawn,          {.v = brightnessMax } },
+	{ ControlMask|Mod4Mask|ShiftMask, XK_Down,   spawn,          {.v = brightnessMin } },
+	{ ControlMask|Mod4Mask|ShiftMask, XK_Left,   spawn,          {.v = brightnessMid } },
 	{ Mod1Mask|ControlMask,         XK_o,      spawn,          {.v = keybrightnessUp } },
 	{ Mod1Mask|ControlMask,         XK_p,      spawn,          {.v = keybrightnessDown } },
 	{ MODKEY,                       XK_Return, zoom,           {0} },
