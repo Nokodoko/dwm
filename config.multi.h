@@ -72,6 +72,7 @@ static const Rule rules[] = {
 
 	/* --- Floating overlays (follow focus) --- */
 	{"wezterm-lf",        NULL,     NULL,           0,                     1,          -1,      1,           1, SchemeOlr,    "lf",        1200,   900},
+	{"wezterm-lister",    NULL,     NULL,           0,                     1,          -1,      1,           1, SchemeOlr,    "lister",    1100,   650},
 	{"wezterm-tabtiler",  NULL,     NULL,           0,                     1,          -1,      1,           1, SchemeOlr,    "tiles",     1200,   900},
 	{"trustgraph-viewer", NULL,     NULL,           0,                     1,          -1,      0,          -1, -1,           NULL,        0,      0},
 
@@ -165,7 +166,7 @@ static const Layout layouts[] = {
 
 /* commands */
 static char dmenumon[2] = "0"; /* component of dmenucmd, single monitor */
-static const char *dmenucmd[] = { "dmenu_run", "-m", dmenumon, "-fn", dmenufont, "-nb", col_gray1, "-nf", col_gray3, "-sb", col_cyan, "-sf", col_gray4, NULL };
+static const char *dmenucmd[] = { "/home/n0ko/scripts/lister.sh", NULL };
 static const char *termcmd[]  = { "/home/n0ko/scripts/wezterm-egl-fix.sh", "start", "--always-new-process", NULL };
 static const char *lyxcmd[]  = { "/home/n0ko/scripts/wezterm-egl-fix.sh", "start", "--always-new-process", "--", "lyx", NULL };
 static const char *killcmd[]  = { "killer.py", NULL };

@@ -1,3 +1,4 @@
+// TODO: remove config.multi.h once mobile is stable as daily driver.
 /* See LICENSE file for copyright and license details. */
 
 #include <X11/XF86keysym.h>
@@ -42,16 +43,18 @@ static const Rule rules[] = {
 	 *   WM_CLASS(STRING) = instance, class
 	 *   WM_NAME(STRING) = title
 	 *
-	 * 2-monitor pertag rules:
-	 *   Mon 0 (DP-2, left):
+	 * Mobile (2-monitor) pertag rules (z13 undocked + external strip):
+	 *   Mon 0 (eDP-1, 2560x1600):    primary work area, tags 1-3
 	 *     - Browsers (www) -> tag 1 (1<<0)
-	 *     - Chat (cht) -> tag 2 (1<<1)
-	 *   Mon 1 (DP-0, right):
+	 *     - Chat (cht)     -> tag 2 (1<<1)
 	 *     - Terminals (>_) -> tag 3 (1<<2)
-	 *     - Teams (tms) -> tag 4 (1<<3)
-	 *     - Code/Agents -> tag 5 (1<<4)
-	 *     - Games -> tag 7 (1<<6)
-	 *     - Media -> tag 9 (1<<8)
+	 *   Mon 1 (DP-1, 2560x720 strip): secondary / monitoring area, tags 4-9
+	 *     - Team/Agents    -> tag 4 (1<<3)
+	 *     - Monitoring     -> tag 5 (1<<4)
+	 *     - Code/Agents    -> tag 6 (1<<5)
+	 *     - Games          -> tag 7 (1<<6)
+	 *     - Slack          -> tag 8 (1<<7)
+	 *     - Media          -> tag 9 (1<<8)
 	 *   Scratchpads: floating, monitor -1 (follow focus)
 	 */
 	/* class              instance  title           tags mask              isfloating  monitor  iscentered  bw  borderscheme  bordertitle  floatw  floath */
@@ -73,7 +76,7 @@ static const Rule rules[] = {
 	{"wezterm-tabtiler",  NULL,     NULL,           0,                     1,          -1,      1,           1, SchemeOlr,    "tiles",     1200,   900},
 	{"trustgraph-viewer", NULL,     NULL,           0,                     1,          -1,      0,          -1, -1,           NULL,        0,      0},
 
-	/* --- Mon 1 (DP-2): Tag 1 (browsers, 1<<0) --- */
+	/* --- Mon 0 (eDP-1): Tag 1 (browsers, 1<<0) --- */
 	{"firefox",               NULL,     NULL,       1,                 0,           0,      0,          -1, -1,           NULL,        0,      0},
 	{"Vivaldi-stable",        NULL,     NULL,       1,                 0,           0,      0,          -1, -1,           NULL,        0,      0},
 	{"Vivaldi-flatpak",       NULL,     NULL,       1,                 0,           0,      0,          -1, -1,           NULL,        0,      0},
@@ -81,39 +84,36 @@ static const Rule rules[] = {
 	{"qutebrowser",           NULL,     NULL,       1,                 0,           0,      0,          -1, -1,           NULL,        0,      0},
 	{"Google-chrome",         NULL,     NULL,       1,                 0,           0,      0,          -1, -1,           NULL,        0,      0},
 
-	/* --- Mon 1 (DP-2): Tag 2 (chat, 1<<1) --- */
+	/* --- Mon 0 (eDP-1): Tag 2 (chat, 1<<1) --- */
 	{"teams-for-linux",       NULL,     NULL,       1 << 1,            0,           0,      0,          -1, -1,           NULL,        0,      0},
 	{"Slack",                 NULL,     NULL,       1 << 1,            0,           0,      0,          -1, -1,           NULL,        0,      0},
 	{"discord",               NULL,     NULL,       1 << 1,            0,           0,      0,          -1, -1,           NULL,        0,      0},
 	{"ZapZap",                NULL,     NULL,       1 << 1,            0,           0,      0,          -1, -1,           NULL,        0,      0},
 	{"Electron",              NULL,     NULL,       1 << 1,            0,           0,      0,          -1, -1,           NULL,        0,      0},
 
-	/* --- Mon 0 (DP-0): Tag 3 (terminals, 1<<2) --- */
+	/* --- Mon 0 (eDP-1): Tag 3 (terminals, 1<<2) --- */
 	{"St",                    NULL,     NULL,       1 << 2,            0,           0,      1,          -1, -1,           NULL,        0,      0},
 	{"org.wezfurlong.wezterm",NULL,     NULL,       1 << 2,            0,           0,      0,          -1, -1,           NULL,        0,      0},
 	{"neovide",               NULL,     NULL,       1 << 2,            0,           0,      0,          -1, -1,           NULL,        0,      0},
 	{"wireshark",             NULL,     NULL,       1 << 2,            0,           0,      -1,         -1, -1,           NULL,        0,      0},
 
-	/* --- Mon 0 (DP-0): Tag 4 (team/agents, 1<<3) --- */
-	{"cmdr-dashboard",        NULL,     NULL,       1 << 3,            0,           0,      0,          -1, -1,           NULL,        0,      0},
-	{"cmdr-terminal",         NULL,     NULL,       1 << 3,            0,           0,      0,          -1, -1,           NULL,        0,      0},
-	{"overstory-terminal",    NULL,     NULL,       1 << 3,            0,           0,      0,          -1, -1,           NULL,        0,      0},
-	{"cmdr-feed",             NULL,     NULL,       1 << 3,            0,           0,      0,          -1, -1,           NULL,        0,      0},
-	{"cmdr-costs",            NULL,     NULL,       1 << 3,            0,           0,      0,          -1, -1,           NULL,        0,      0},
-	{"cmdr-logs",             NULL,     NULL,       1 << 3,            0,           0,      0,          -1, -1,           NULL,        0,      0},
-	{"cmdr-errors",           NULL,     NULL,       1 << 3,            0,           0,      0,          -1, -1,           NULL,        0,      0},
+	/* --- Mon 1 (DP-1, 2560x720 strip): Tag 4 (team/agents, 1<<3) --- */
+	{"cmdr-dashboard",        NULL,     NULL,       1 << 3,            0,           1,      0,          -1, -1,           NULL,        0,      0},
+	{"cmdr-terminal",         NULL,     NULL,       1 << 3,            0,           1,      0,          -1, -1,           NULL,        0,      0},
+	{"overstory-terminal",    NULL,     NULL,       1 << 3,            0,           1,      0,          -1, -1,           NULL,        0,      0},
+	{"cmdr-feed",             NULL,     NULL,       1 << 3,            0,           1,      0,          -1, -1,           NULL,        0,      0},
+	{"cmdr-costs",            NULL,     NULL,       1 << 3,            0,           1,      0,          -1, -1,           NULL,        0,      0},
+	{"cmdr-logs",             NULL,     NULL,       1 << 3,            0,           1,      0,          -1, -1,           NULL,        0,      0},
+	{"cmdr-errors",           NULL,     NULL,       1 << 3,            0,           1,      0,          -1, -1,           NULL,        0,      0},
 
-	/* --- Mon 0 (DP-0): games (1<<6) --- */
-	{"steam",                 NULL,     NULL,       1 << 6,            0,           0,      0,          -1, -1,           NULL,        0,      0},
+	/* --- Mon 1 (DP-1, 2560x720 strip): games (1<<6) --- */
+	{"steam",                 NULL,     NULL,       1 << 6,            0,           1,      0,          -1, -1,           NULL,        0,      0},
 
-	/* --- Mon 0 (DP-0): media (1<<8) --- */
-	{"mpv",                   NULL,     NULL,       1 << 8,            0,           0,      0,          -1, -1,           NULL,        0,      0},
+	/* --- Mon 1 (DP-1, 2560x720 strip): media (1<<8) --- */
+	{"mpv",                   NULL,     NULL,       1 << 8,            0,           1,      0,          -1, -1,           NULL,        0,      0},
 
 	/*
-	 * Trustgraph / localhost:3000 — use Vivaldi app mode:
-	 *   vivaldi --app=http://localhost:3000
-	 * This creates a separate X11 window with "trustgraph" or "localhost" in the title.
-	 * NOTE: Regular browser tabs CANNOT be targeted by dwm rules (all tabs share one X11 window).
+	 * Trustgraph / localhost:3000 — use Vivaldi app mode.
 	 */
 	{NULL,                    NULL,     "trustgraph", 0,               1,          -1,      1,          -1, -1,           NULL,        1200,   900},
 	{NULL,                    NULL,     "localhost",  0,               1,          -1,      1,          -1, -1,           NULL,        1200,   900},
@@ -121,15 +121,17 @@ static const Rule rules[] = {
 
 /* default tags per monitor (index = monitor number) */
 static const unsigned int defaulttags[] = {
-    1 << 0,   /* mon 0: tag 1 (www) */
+    1 << 0,   /* mon 0 (eDP-1):              tag 1 (www) */
+    1 << 3,   /* mon 1 (DP-1, 2560x720):     tag 4 (team) */
 };
 
 /* tag-to-monitor map: which monitor owns each tag (index = tag index) */
-static const int tagmonmap[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+static const int tagmonmap[] = { 0, 0, 0, 1, 1, 1, 1, 1, 1 };
 /*                                ^  ^  ^  ^  ^  ^  ^  ^  ^
  *                           tag: 1  2  3  4  5  6  7  8  9
  *                          icon: ww ch >_ tm rk cd gm sl mu
- *                           mon: 1  1  0  0  0  0  0  0  0  */
+ *                           mon: 0  0  0  1  1  1  1  1  1
+ *                          name: eDP eDP eDP DP1 DP1 DP1 DP1 DP1 DP1 */
 
 /* layout(s) */
 const float mfact     = 0.55; /* factor of master area size [0.05..0.95] */
@@ -194,8 +196,6 @@ static const char *restartdwm_base[] = { "/home/n0ko/scripts/dwm-hotswap.sh", "b
 static const char *brightnessUp[] = { "/home/n0ko/scripts/brightnessUp.sh", NULL };
 static const char *brightnessDown[] = { "/home/n0ko/scripts/brightnessDown.sh", NULL };
 static const char *brightnessMid[] = { "/home/n0ko/scripts/brightnessMid.sh", NULL };
-static const char *brightnessMax[] = { "/home/n0ko/scripts/brightnessMax.sh", NULL };
-static const char *brightnessMin[] = { "/home/n0ko/scripts/brightnessMin.sh", NULL };
 static const char *keybrightnessUp[] = { "/home/n0ko/scripts/keybrightnessUp.sh", NULL };
 static const char *keybrightnessDown[] = { "/home/n0ko/scripts/keybrightnessDown.sh", NULL };
 static const char *xboxConnect[] = { "/home/n0ko/scripts/xbox.sh", NULL };
@@ -221,14 +221,13 @@ static const Key keys[] = {
         { Mod1Mask,                     XK_r,      togglescratch,  {.v = steamscratchpadcmd } },
 	{ Mod1Mask|ShiftMask,           XK_s,      togglescratch,  {.v = sshscratchpadcmd } },
 	{ Mod1Mask|ControlMask,         XK_v,      spawn,          {.v = vivaldileadercmd } },
-	{ Mod1Mask|ControlMask,         XK_V,      spawn,          {.v = vivaldileadercmd } },
 	{ Mod1Mask,                     XK_t,      spawn,          {.v = dwmleadercmd } },
 	{ Mod1Mask,                     XK_c,      spawn,          {.v = xboxConnect } },
-	{ MODKEY,                       XK_F5,     spawn,          {.v = tgsnapcmd } },        /* snap tg-viewer to pane */
-	{ MODKEY,                       XK_r,      spawn,          {.v = restartdwm } },       /* -> pertag (single) */
-	{ MODKEY|ShiftMask,             XK_r,      spawn,          {.v = restartdwm_wt } },    /* -> pertag-multi */
-	{ MODKEY|ControlMask,           XK_r,      spawn,          {.v = restartdwm_base } },  /* -> base */
-	{ MODKEY|ControlMask,           XK_u,      spawn,          {.v = lewislayoutcmd } },   /* lewis 3-mon layout */
+	{ MODKEY,                       XK_F5,     spawn,          {.v = tgsnapcmd } },
+	{ MODKEY,                       XK_r,      spawn,          {.v = restartdwm } },
+	{ MODKEY|ShiftMask,             XK_r,      spawn,          {.v = restartdwm_wt } },
+	{ MODKEY|ControlMask,           XK_r,      spawn,          {.v = restartdwm_base } },
+	{ MODKEY|ControlMask,           XK_u,      spawn,          {.v = lewislayoutcmd } },
 	{ MODKEY,                       XK_p,      spawn,          {.v = dmenucmd } },
 	{ MODKEY,                       XK_x,      spawn,          {.v = lyxcmd } },
 	{ MODKEY|ShiftMask,             XK_x,      spawn,          {.v = killcmd } },
@@ -239,7 +238,7 @@ static const Key keys[] = {
 	{ 0,                            XF86XK_AudioRaiseVolume, spawn, {.v = volumeUp } },
 	{ 0,                            XF86XK_AudioLowerVolume, spawn, {.v = volumeDown } },
 	{ 0,                            XF86XK_AudioMute,        spawn, {.v = volumeMute } },
-	{ Mod1Mask|ShiftMask,           XK_p,      spawn,          {.v = pass} },
+	{ MODKEY|ShiftMask,             XK_p,      spawn,          {.v = pass} },
 	{ MODKEY|ShiftMask,             XK_w,      spawn,          {.v = wificmd} },
 	{ Mod1Mask|ShiftMask,           XK_t,      spawn,          {.v = top} },
   { Mod1Mask|ControlMask,         XK_Down,   spawn,          {.v = dhp } },
@@ -262,9 +261,6 @@ static const Key keys[] = {
 	{ MODKEY|ControlMask,           XK_m,      spawn,          {.v = brightnessMid } },
 	{ Mod1Mask|ControlMask,         XK_u,      spawn,          {.v = brightnessUp } },
 	{ Mod1Mask|ControlMask,         XK_i,      spawn,          {.v = brightnessDown } },
-	{ ControlMask|Mod4Mask|ShiftMask, XK_Up,     spawn,          {.v = brightnessMax } },
-	{ ControlMask|Mod4Mask|ShiftMask, XK_Down,   spawn,          {.v = brightnessMin } },
-	{ ControlMask|Mod4Mask|ShiftMask, XK_Left,   spawn,          {.v = brightnessMid } },
 	{ Mod1Mask|ControlMask,         XK_o,      spawn,          {.v = keybrightnessUp } },
 	{ Mod1Mask|ControlMask,         XK_p,      spawn,          {.v = keybrightnessDown } },
 	{ MODKEY,                       XK_Return, zoom,           {0} },
@@ -288,22 +284,20 @@ static const Key keys[] = {
 	{ MODKEY,                       XK_period, focusmon,       {.i = +1 } },
 	{ MODKEY|ShiftMask,             XK_comma,  tagmon,         {.i = -1 } },
 	{ MODKEY|ShiftMask,             XK_period, tagmon,         {.i = +1 } },
-	TAGKEYS(                        XK_1,                      0)  /* www */
-	TAGKEYS(                        XK_2,                      1)  /* cht */
-	TAGKEYS(                        XK_3,                      2)  /* >_  */
-	TAGKEYS(                        XK_4,                      3)  /* tms */
-	TAGKEYS(                        XK_5,                      4)  /* rkt */
-	TAGKEYS(                        XK_6,                      5)  /* cod */
-	TAGKEYS(                        XK_7,                      6)  /* gam */
-	TAGKEYS(                        XK_8,                      7)  /* slk */
-	TAGKEYS(                        XK_9,                      8)  /* mus */
+	TAGKEYS(                        XK_1,                      0)
+	TAGKEYS(                        XK_2,                      1)
+	TAGKEYS(                        XK_3,                      2)
+	TAGKEYS(                        XK_4,                      3)
+	TAGKEYS(                        XK_5,                      4)
+	TAGKEYS(                        XK_6,                      5)
+	TAGKEYS(                        XK_7,                      6)
+	TAGKEYS(                        XK_8,                      7)
+	TAGKEYS(                        XK_9,                      8)
 	{ MODKEY|ShiftMask,             XK_q,      quit,           {0} },
 };
 
 /* button definitions */
-/* click can be ClkTagBar, ClkLtSymbol, ClkStatusText, ClkWinTitle, ClkClientWin, or ClkRootWin */
 static const Button buttons[] = {
-	/* click                event mask      button          function        argument */
 	{ ClkLtSymbol,          0,              Button1,        setlayout,      {0} },
 	{ ClkLtSymbol,          0,              Button3,        setlayout,      {.v = &layouts[2]} },
 	{ ClkWinTitle,          0,              Button2,        zoom,           {0} },
