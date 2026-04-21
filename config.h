@@ -9,7 +9,6 @@ static const unsigned int snap      = 32;       /* snap pixel */
 static const int showbar            = 1;        /* 0 means no bar */
 static const int topbar             = 1;        /* 0 means bottom bar */
 static const char *fonts[] = {"VictorMono Nerd Font Mono:style=Italic:size=11"};
-static const char dmenufont[] = "VictorMono Nerd Font Mono:style=Italic:size=11";
 static const char col_gray1[] = "#000000";
 static const char col_gray2[] = "#333333";
 static const char col_gray3[] = "#5F5F00";
@@ -73,6 +72,7 @@ static const Rule rules[] = {
 
 	/* --- Floating overlays (follow focus) --- */
 	{"wezterm-lf",        NULL,     NULL,           0,                     1,          -1,      1,           1, SchemeOlr,    "lf",        0,      0},
+	{"wezterm-lister",    NULL,     NULL,           0,                     1,          -1,      1,           1, SchemeOlr,    "lister",    1100,   650},
 	{"wezterm-tabtiler",  NULL,     NULL,           0,                     1,          -1,      1,           1, SchemeOlr,    "tiles",     0,      0},
 
 	/* --- Mon 1 (DP-2): Tag 1 (browsers, 1<<0) --- */
@@ -163,12 +163,9 @@ static const Layout layouts[] = {
 #define STATUSBAR "dwmblocks"
 
 /* commands */
-static char dmenumon[2] = "1"; /* component of dmenucmd, DP-2 (mon 1) */
-static const char *dmenucmd[] = { "dmenu_run", "-m", dmenumon, "-fn", dmenufont, "-nb", col_gray1, "-nf", col_gray3, "-sb", col_cyan, "-sf", col_gray4, NULL };
+static const char *listercmd[] = { "/home/n0ko/scripts/lister.sh", NULL };
 static const char *termcmd[]  = { "/home/n0ko/scripts/wezterm-egl-fix.sh", "start", "--always-new-process", NULL };
 static const char *lyxcmd[]  = { "/home/n0ko/scripts/wezterm-egl-fix.sh", "start", "--always-new-process", "--", "lyx", NULL };
-static const char *killcmd[]  = { "killer.py", NULL };
-static const char *pass[]  = { "pass.py", NULL };
 static const char *hb[]  = { "hb.sh", NULL };
 static const char *lb[]  = { "lb.sh", NULL };
 static const char *pavucontrol[]  = { "pavucontrol", NULL };
@@ -221,9 +218,8 @@ static const Key keys[] = {
 	{ Mod1Mask,                     XK_c,      spawn,          {.v = xboxConnect } },
 	{ MODKEY,                       XK_r,      spawn,          {.v = restartdwm } },
 	{ MODKEY|ShiftMask,             XK_r,      spawn,          {.v = restartdwm_wt } },
-	{ MODKEY,                       XK_p,      spawn,          {.v = dmenucmd } },
+	{ MODKEY,                       XK_p,      spawn,          {.v = listercmd } },
 	{ MODKEY,                       XK_x,      spawn,          {.v = lyxcmd } },
-	{ MODKEY|ShiftMask,             XK_x,      spawn,          {.v = killcmd } },
 	{ MODKEY|ShiftMask,             XK_c,      spawn,          {.v = cal } },
 	{ MODKEY,                       XK_m,      spawn,          {.v = pavucontrol } },
 	{ MODKEY,                       XK_o,      spawn,          {.v = mouseOff } },
@@ -231,7 +227,6 @@ static const Key keys[] = {
 	{ MODKEY|ControlMask,           XK_n,      spawn,          {.v = volumeUp } },
 	{ MODKEY|ControlMask,           XK_b,      spawn,          {.v = volumeDown } },
 	{ MODKEY|ControlMask,           XK_v,      spawn,          {.v = volumeMute } },
-	{ MODKEY|ShiftMask,             XK_p,      spawn,          {.v = pass} },
 	{ Mod1Mask|ShiftMask,           XK_t,      spawn,          {.v = top} },
   { Mod1Mask|ControlMask,         XK_Down,   spawn,          {.v = dhp } },
   { Mod4Mask|ControlMask,         XK_Right,  spawn,          {.v = hb } },
