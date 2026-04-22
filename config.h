@@ -73,7 +73,7 @@ static const Rule rules[] = {
 	/* --- Floating overlays (follow focus) --- */
 	{"wezterm-lf",        NULL,     NULL,           0,                     1,          -1,      1,           1, SchemeOlr,    "lf",        0,      0},
 	{"wezterm-lister",    NULL,     NULL,           0,                     1,          -1,      1,           1, SchemeOlr,    "lister",    1100,   650},
-	{"wezterm-tabtiler",  NULL,     NULL,           0,                     1,          -1,      1,           1, SchemeOlr,    "tiles",     0,      0},
+	{"wezterm-tabtiler",  NULL,     NULL,           0,                     1,          -1,      1,           1, SchemeOlr,    "tiles",     1100,   650},
 
 	/* --- Mon 1 (DP-2): Tag 1 (browsers, 1<<0) --- */
 	{"firefox",               NULL,     NULL,       1,                 0,           1,      0,          -1, -1,           NULL,        0,      0},
