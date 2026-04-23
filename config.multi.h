@@ -71,9 +71,9 @@ static const Rule rules[] = {
 	{"ssh-scratchpad",    NULL,     NULL,           SSH_SCRATCHPAD_TAG,    1,          -1,      0,          -1, -1,           NULL,        1200,   900},
 
 	/* --- Floating overlays (follow focus) --- */
-	{"wezterm-lf",        NULL,     NULL,           0,                     1,          -1,      1,           1, SchemeOlr,    "lf",        1200,   900},
-	{"wezterm-lister",    NULL,     NULL,           0,                     1,          -1,      1,           1, SchemeOlr,    "lister",    1100,   650},
-	{"wezterm-tabtiler",  NULL,     NULL,           0,                     1,          -1,      1,           1, SchemeOlr,    "tiles",     1200,   900},
+	{"kitty-lf",          NULL,     NULL,           0,                     1,          -1,      1,           1, SchemeOlr,    "lf",        1200,   900},
+	{"kitty-lister",      NULL,     NULL,           0,                     1,          -1,      1,           1, SchemeOlr,    "lister",    1100,   650},
+	{"kitty-tabtiler",    NULL,     NULL,           0,                     1,          -1,      1,           1, SchemeOlr,    "tiles",     1200,   900},
 	{"trustgraph-viewer", NULL,     NULL,           0,                     1,          -1,      0,          -1, -1,           NULL,        0,      0},
 
 	/* --- Mon 0 (eDP-1): Tag 1 (browsers, 1<<0) --- */
@@ -93,7 +93,7 @@ static const Rule rules[] = {
 
 	/* --- Mon 0 (eDP-1): Tag 3 (terminals, 1<<2) --- */
 	{"St",                    NULL,     NULL,       1 << 2,            0,           0,      1,          -1, -1,           NULL,        0,      0},
-	{"org.wezfurlong.wezterm",NULL,     NULL,       1 << 2,            0,           0,      0,          -1, -1,           NULL,        0,      0},
+	{"kitty",                 NULL,     NULL,       1 << 2,            0,           0,      0,          -1, -1,           NULL,        0,      0},
 	{"neovide",               NULL,     NULL,       1 << 2,            0,           0,      0,          -1, -1,           NULL,        0,      0},
 	{"wireshark",             NULL,     NULL,       1 << 2,            0,           0,      -1,         -1, -1,           NULL,        0,      0},
 
@@ -163,8 +163,8 @@ static const Layout layouts[] = {
 /* commands */
 static char dmenumon[2] = "0"; /* component of dmenucmd, single monitor */
 static const char *dmenucmd[] = { "/home/n0ko/scripts/lister.sh", NULL };
-static const char *termcmd[]  = { "/home/n0ko/scripts/wezterm-egl-fix.sh", "start", "--always-new-process", NULL };
-static const char *lyxcmd[]  = { "/home/n0ko/scripts/wezterm-egl-fix.sh", "start", "--always-new-process", "--", "lyx", NULL };
+static const char *termcmd[]  = { "kitty", NULL };
+static const char *lyxcmd[]  = { "kitty", "--", "lyx", NULL };
 static const char *killcmd[]  = { "killer.py", NULL };
 static const char *pass[]  = { "pass.py", NULL };
 static const char *wificmd[]  = { "wifi.py", NULL };
@@ -177,15 +177,15 @@ static const char *mouseOff[]  = { "touchpadOff.sh", NULL };
 static const char *volumeUp[]  = { "/home/n0ko/scripts/volume.sh", "up", NULL };
 static const char *volumeDown[]  = { "/home/n0ko/scripts/volume.sh", "down", NULL };
 static const char *volumeMute[]  = { "/home/n0ko/scripts/volume.sh", "mute", NULL };
-static const char *cal[]  = { "/home/n0ko/scripts/wezterm-egl-fix.sh", "start", "--always-new-process", "--", "calcurse", NULL };
-static const char *top[]  = { "/home/n0ko/scripts/wezterm-egl-fix.sh", "start", "--always-new-process", "--", "btop", NULL };
+static const char *cal[]  = { "kitty", "--", "calcurse", NULL };
+static const char *top[]  = { "kitty", "--", "btop", NULL };
 static const char *yazi[]  = { "/home/n0ko/scripts/fm-launcher.sh", "yazi", NULL };
 static const char *scratchpadcmd[] = {"/bin/neovide", "--frame=none", "--x11-wm-class", "term-scratchpad", "--x11-wm-class-instance=term-scratchpad", NULL};
-static const char *btopscratchpadcmd[] = {"/home/n0ko/scripts/wezterm-egl-fix.sh", "start", "--class", "btop-scratchpad", "--always-new-process", "--", "btop", NULL};
-static const char *olrscratchpadcmd[] = {"/home/n0ko/scripts/wezterm-egl-fix.sh", "start", "--class", "olr-scratchpad", "--always-new-process", "--", "/usr/local/bin/olr", NULL};
-static const char *aiscratchpadcmd[] = {"/home/n0ko/scripts/wezterm-egl-fix.sh", "start", "--class", "ai-scratchpad", "--always-new-process", "--", "/home/n0ko/misc/hostlister.sh", NULL};
-static const char *steamscratchpadcmd[] = {"/home/n0ko/scripts/wezterm-egl-fix.sh", "start", "--class", "stm-scratchpad", "--always-new-process", "--", "/home/n0ko/scripts/steam_launcher.zsh", NULL};
-static const char *sshscratchpadcmd[] = {"/home/n0ko/scripts/wezterm-egl-fix.sh", "start", "--class", "ssh-scratchpad", "--always-new-process", "--", "ssh", "-t", "base", "zellij", "attach", "-c", "default", NULL};
+static const char *btopscratchpadcmd[] = {"kitty", "--class", "btop-scratchpad", "--", "btop", NULL};
+static const char *olrscratchpadcmd[] = {"kitty", "--class", "olr-scratchpad", "--", "/usr/local/bin/olr", NULL};
+static const char *aiscratchpadcmd[] = {"kitty", "--class", "ai-scratchpad", "--", "/home/n0ko/misc/hostlister.sh", NULL};
+static const char *steamscratchpadcmd[] = {"kitty", "--class", "stm-scratchpad", "--", "/home/n0ko/scripts/steam_launcher.zsh", NULL};
+static const char *sshscratchpadcmd[] = {"kitty", "--class", "ssh-scratchpad", "--", "ssh", "-t", "base", "zellij", "attach", "-c", "default", NULL};
 static const char *scrot_precision[] = { "/bin/sh", "-c", "scrot -s -e 'xclip -selection clipboard -t image/png -i $f && notify-send \"Screenshot Precision\" \"Copied to clipboard\"'", NULL };
 static const char *slockcmd[] = { "/home/n0ko/scripts/slock-dpms.sh", NULL };
 static const char *tgsnapcmd[] = { "/usr/local/bin/tg-snap", NULL };
