@@ -350,6 +350,10 @@ applyrules(Client *c)
 			for (m = mons; m && m->num != r->monitor; m = m->next);
 			if (m)
 				c->mon = m;
+			/* First-match wins: prevents generic rules (e.g. "kitty")
+			 * from clobbering more specific ones (e.g. "kitty-lf")
+			 * via substring matching. */
+			break;
 		}
 	}
 	if (ch.res_class)
@@ -1265,7 +1269,7 @@ grabkeys(void)
 void
 incnmaster(const Arg *arg)
 {
-	selmon->nmaster = selmon->pertag->nmasters[selmon->pertag->curtag] = MAX(selmon->nmaster + arg->i, 0);
+	selmon->nmaster = selmon->pertag->nmasters[selmon->pertag->curtag] = arg->i ? MAX(selmon->nmaster + arg->i, 0) : nmaster;
 	arrange(selmon);
 }
 
@@ -2643,7 +2647,22 @@ togglescratch(const Arg *arg)
 	Client *c = NULL;
 	Monitor *m;
 	unsigned int scratchtag = 0;
-	const char *class = ((const char **)arg->v)[3];
+	const char **argv = (const char **)arg->v;
+	const char *class = NULL;
+	int i;
+
+	/* Robustly extract WM_CLASS from argv regardless of launcher layout.
+	 * Supports kitty (--class X), neovide (--x11-wm-class X), and falls
+	 * back to legacy positional argv[3]. */
+	for (i = 0; argv[i] != NULL; i++) {
+		if ((strcmp(argv[i], "--class") == 0 ||
+		     strcmp(argv[i], "--x11-wm-class") == 0) && argv[i+1]) {
+			class = argv[i+1];
+			break;
+		}
+	}
+	if (!class)
+		class = argv[3] ? argv[3] : "";
 
 	if (strcmp(class, "term-scratchpad") == 0)
 		scratchtag = SCRATCHPAD_TAG;
