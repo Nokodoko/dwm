@@ -2069,8 +2069,62 @@ spawn(const Arg *arg)
 void
 tag(const Arg *arg)
 {
-	if (selmon->sel && arg->ui & TAGMASK) {
-		selmon->sel->tags = arg->ui & TAGMASK;
+	int i, targetmon;
+	Monitor *m;
+	Client *c;
+	Monitor *origmon;
+
+	if (!selmon->sel || !(arg->ui & TAGMASK))
+		return;
+
+	c = selmon->sel;
+	origmon = selmon;
+
+	/* find which tag bit is set */
+	for (i = 0; !(arg->ui & 1 << i); i++) ;
+
+	/* look up the owning monitor for this tag */
+	if (i < LENGTH(tagmonmap))
+		targetmon = tagmonmap[i];
+	else
+		targetmon = selmon->num;
+
+	/* find the target monitor */
+	for (m = mons; m && m->num != targetmon; m = m->next) ;
+	if (!m)
+		m = selmon;
+
+	/* send to target monitor if different */
+	if (m != origmon) {
+		unfocus(c, 1);
+		detach(c);
+		detachstack(c);
+		c->mon = m;
+		c->tags = arg->ui & TAGMASK;
+		attach(c);
+		attachstack(c);
+		/* switch target monitor's view to the destination tag if not already shown */
+		if (!(m->tagset[m->seltags] & (arg->ui & TAGMASK))) {
+			m->seltags ^= 1;
+			m->tagset[m->seltags] = arg->ui & TAGMASK;
+		}
+		/* always sync target monitor's pertag state for the destination tag */
+		m->pertag->prevtag = m->pertag->curtag;
+		m->pertag->curtag = i + 1;
+		m->nmaster = m->pertag->nmasters[m->pertag->curtag];
+		m->mfact = m->pertag->mfacts[m->pertag->curtag];
+		m->sellt = m->pertag->sellts[m->pertag->curtag];
+		m->lt[m->sellt] = m->pertag->ltidxs[m->pertag->curtag][m->sellt];
+		m->lt[m->sellt^1] = m->pertag->ltidxs[m->pertag->curtag][m->sellt^1];
+		if (m->showbar != m->pertag->showbars[m->pertag->curtag]) {
+			m->showbar = m->pertag->showbars[m->pertag->curtag];
+			updatebarpos(m);
+		}
+		focus(NULL);
+		arrange(origmon);
+		arrange(m);
+	} else {
+		c->tags = arg->ui & TAGMASK;
 		focus(NULL);
 		arrange(selmon);
 	}
@@ -2139,12 +2193,65 @@ void
 toggletag(const Arg *arg)
 {
 	unsigned int newtags;
+	int i, targetmon;
+	Monitor *m;
+	Client *c;
+	Monitor *origmon;
 
 	if (!selmon->sel)
 		return;
 	newtags = selmon->sel->tags ^ (arg->ui & TAGMASK);
-	if (newtags) {
-		selmon->sel->tags = newtags;
+	if (!newtags)
+		return;
+
+	c = selmon->sel;
+	origmon = selmon;
+
+	/* find which tag bit is being toggled */
+	for (i = 0; !(arg->ui & 1 << i); i++) ;
+
+	/* look up the owning monitor for this tag */
+	if (i < LENGTH(tagmonmap))
+		targetmon = tagmonmap[i];
+	else
+		targetmon = selmon->num;
+
+	/* find the target monitor */
+	for (m = mons; m && m->num != targetmon; m = m->next) ;
+	if (!m)
+		m = selmon;
+
+	/* If we're ADDING a tag that lives on a different monitor, move the client.
+	 * If we're REMOVING the tag (turning the bit off), keep the client on its
+	 * current monitor — the remaining tag(s) determine where it should live. */
+	if (m != origmon && (arg->ui & TAGMASK & newtags)) {
+		unfocus(c, 1);
+		detach(c);
+		detachstack(c);
+		c->mon = m;
+		c->tags = newtags;
+		attach(c);
+		attachstack(c);
+		if (!(m->tagset[m->seltags] & (arg->ui & TAGMASK))) {
+			m->seltags ^= 1;
+			m->tagset[m->seltags] = arg->ui & TAGMASK;
+		}
+		m->pertag->prevtag = m->pertag->curtag;
+		m->pertag->curtag = i + 1;
+		m->nmaster = m->pertag->nmasters[m->pertag->curtag];
+		m->mfact = m->pertag->mfacts[m->pertag->curtag];
+		m->sellt = m->pertag->sellts[m->pertag->curtag];
+		m->lt[m->sellt] = m->pertag->ltidxs[m->pertag->curtag][m->sellt];
+		m->lt[m->sellt^1] = m->pertag->ltidxs[m->pertag->curtag][m->sellt^1];
+		if (m->showbar != m->pertag->showbars[m->pertag->curtag]) {
+			m->showbar = m->pertag->showbars[m->pertag->curtag];
+			updatebarpos(m);
+		}
+		focus(NULL);
+		arrange(origmon);
+		arrange(m);
+	} else {
+		c->tags = newtags;
 		focus(NULL);
 		arrange(selmon);
 	}
