@@ -179,7 +179,7 @@ static const char *volumeMute[]  = { "/home/n0ko/scripts/volume.sh", "mute", NUL
 static const char *cal[]  = { "kitty", "--", "calcurse", NULL };
 static const char *top[]  = { "kitty", "--", "btop", NULL };
 static const char *yazi[]  = { "/home/n0ko/scripts/fm-launcher.sh", "yazi", NULL };
-static const char *scratchpadcmd[] = {"/bin/neovide", "--frame=none", "--x11-wm-class", "term-scratchpad", "--x11-wm-class-instance=term-scratchpad", NULL};
+static const char *scratchpadcmd[] = {"kitty", "--class", "term-scratchpad", NULL};
 static const char *btopscratchpadcmd[] = {"kitty", "--class", "btop-scratchpad", "--", "btop", NULL};
 static const char *olrscratchpadcmd[] = {"kitty", "--class", "olr-scratchpad", "--", "/usr/local/bin/olr", NULL};
 static const char *aiscratchpadcmd[] = {"kitty", "--class", "ai-scratchpad", "--", "/home/n0ko/misc/hostlister.sh", NULL};
