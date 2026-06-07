@@ -28,6 +28,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/epoll.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <X11/cursorfont.h>
@@ -82,6 +83,18 @@ typedef struct {
 	const Arg arg;
 } Button;
 
+typedef struct TagState TagState;
+struct TagState {
+	int selected;
+	int occupied;
+	int urgent;
+};
+
+typedef struct ClientState ClientState;
+struct ClientState {
+	int isfixed, isfloating, isurgent, neverfocus, oldstate, isfullscreen;
+};
+
 typedef struct Monitor Monitor;
 typedef struct Client Client;
 struct Client {
@@ -96,6 +109,7 @@ struct Client {
 	unsigned int tags;
 	int isfixed, isfloating, isurgent, neverfocus, oldstate, isfullscreen, iscentered;
 	int floatw, floath;
+	ClientState prevstate;
 	Client *next;
 	Client *snext;
 	Monitor *mon;
@@ -117,6 +131,7 @@ typedef struct {
 typedef struct Pertag Pertag;
 struct Monitor {
 	char ltsymbol[16];
+	char lastltsymbol[16];
 	float mfact;
 	int nmaster;
 	int num;
@@ -131,10 +146,13 @@ struct Monitor {
 	int topbar;
 	Client *clients;
 	Client *sel;
+	Client *lastsel;
 	Client *stack;
 	Monitor *next;
 	Window barwin;
 	const Layout *lt[2];
+	const Layout *lastlt;
+	TagState tagstate;
 	Pertag *pertag;
 };
 
@@ -185,6 +203,7 @@ static void focusmon(const Arg *arg);
 static void focusstack(const Arg *arg);
 static Atom getatomprop(Client *c, Atom prop);
 static int getrootptr(int *x, int *y);
+static int handlexevent(struct epoll_event *ev);
 static long getstate(Window w);
 static int isdesktopwindow(Window w);
 static pid_t getstatusbarpid();
@@ -218,8 +237,10 @@ static void setclientstate(Client *c, long state);
 static void setfocus(Client *c);
 static void setfullscreen(Client *c, int fullscreen);
 static void setlayout(const Arg *arg);
+static void setlayoutsafe(const Arg *arg);
 static void setmfact(const Arg *arg);
 static void setup(void);
+static void setupepoll(void);
 static void seturgent(Client *c, int urg);
 static void showhide(Client *c);
 static void sigstatusbar(const Arg *arg);
@@ -284,15 +305,25 @@ static void (*handler[LASTEvent]) (XEvent *) = {
 };
 static Atom wmatom[WMLast], netatom[NetLast];
 static int running = 1;
+static int epoll_fd;
+static int dpy_fd;
 static Cur *cursor[CurLast];
 static Clr **scheme;
 static Display *dpy;
 static Drw *drw;
-static Monitor *mons, *selmon;
+static Monitor *mons, *selmon, *lastselmon;
 static Window root, wmcheckwin;
+
+#include "ipc.h"
 
 /* configuration, allows nested code to access above variables */
 #include "config.h"
+
+#ifdef VERSION
+#include "IPCClient.c"
+#include "yajl_dumps.c"
+#include "ipc.c"
+#endif
 
 /* compile-time check if all tags fit into an unsigned int bit array. */
 struct NumTags { char limitexceeded[LENGTH(tags) > 31 ? -1 : 1]; };
@@ -571,6 +602,12 @@ cleanup(void)
 	XSync(dpy, False);
 	XSetInputFocus(dpy, PointerRoot, RevertToPointerRoot, CurrentTime);
 	XDeleteProperty(dpy, root, netatom[NetActiveWindow]);
+
+	ipc_cleanup();
+
+	if (close(epoll_fd) < 0) {
+			fprintf(stderr, "Failed to close epoll file descriptor\n");
+	}
 }
 
 void
@@ -1761,15 +1798,62 @@ restack(Monitor *m)
 	while (XCheckMaskEvent(dpy, EnterWindowMask, &ev));
 }
 
+int
+handlexevent(struct epoll_event *ev)
+{
+	if (ev->events & EPOLLIN) {
+		XEvent ev;
+		while (running && XPending(dpy)) {
+			XNextEvent(dpy, &ev);
+			if (handler[ev.type]) {
+				handler[ev.type](&ev); /* call handler */
+				ipc_send_events(mons, &lastselmon, selmon);
+			}
+		}
+	} else if (ev-> events & EPOLLHUP) {
+		return -1;
+	}
+
+	return 0;
+}
+
 void
 run(void)
 {
-	XEvent ev;
-	/* main event loop */
+	int event_count = 0;
+	const int MAX_EVENTS = 10;
+	struct epoll_event events[MAX_EVENTS];
+
 	XSync(dpy, False);
-	while (running && !XNextEvent(dpy, &ev))
-		if (handler[ev.type])
-			handler[ev.type](&ev); /* call handler */
+
+	/* main event loop */
+	while (running) {
+		event_count = epoll_wait(epoll_fd, events, MAX_EVENTS, -1);
+
+		for (int i = 0; i < event_count; i++) {
+			int event_fd = events[i].data.fd;
+			DEBUG("Got event from fd %d\n", event_fd);
+
+			if (event_fd == dpy_fd) {
+				// -1 means EPOLLHUP
+				if (handlexevent(events + i) == -1)
+					return;
+			} else if (event_fd == ipc_get_sock_fd()) {
+				ipc_handle_socket_epoll_event(events + i);
+			} else if (ipc_is_client_registered(event_fd)){
+				if (ipc_handle_client_epoll_event(events + i, mons, &lastselmon, selmon,
+							tags, LENGTH(tags), layouts, LENGTH(layouts)) < 0) {
+					fprintf(stderr, "Error handling IPC event on fd %d\n", event_fd);
+				}
+			} else {
+				fprintf(stderr, "Got event from unknown fd %d, ptr %p, u32 %d, u64 %lu",
+						event_fd, events[i].data.ptr, events[i].data.u32,
+						events[i].data.u64);
+				fprintf(stderr, " with events %d\n", events[i].events);
+				return;
+			}
+		}
+	}
 }
 
 void
@@ -1905,6 +1989,18 @@ setlayout(const Arg *arg)
 		drawbar(selmon);
 }
 
+void
+setlayoutsafe(const Arg *arg)
+{
+	const Layout *ltptr = (Layout *)arg->v;
+	if (ltptr == 0)
+			setlayout(arg);
+	for (int i = 0; i < LENGTH(layouts); i++) {
+		if (ltptr == &layouts[i])
+			setlayout(arg);
+	}
+}
+
 /* arg > 1.0 will set mfact absolutely */
 void
 setmfact(const Arg *arg)
@@ -1946,7 +2042,7 @@ setup(void)
 	if (!drw_fontset_create(drw, fonts, LENGTH(fonts)))
 		die("no fonts could be loaded.");
 	lrpad = drw->fonts->h;
-	bh = drw->fonts->h + 2;
+	bh = user_bh ? user_bh : drw->fonts->h + 2;
 	updategeom();
 	/* init atoms */
 	utf8string = XInternAtom(dpy, "UTF8_STRING", False);
@@ -1997,6 +2093,36 @@ setup(void)
 	XSelectInput(dpy, root, wa.event_mask);
 	grabkeys();
 	focus(NULL);
+	setupepoll();
+}
+
+void
+setupepoll(void)
+{
+	epoll_fd = epoll_create1(0);
+	dpy_fd = ConnectionNumber(dpy);
+	struct epoll_event dpy_event;
+
+	// Initialize struct to 0
+	memset(&dpy_event, 0, sizeof(dpy_event));
+
+	DEBUG("Display socket is fd %d\n", dpy_fd);
+
+	if (epoll_fd == -1) {
+		fputs("Failed to create epoll file descriptor", stderr);
+	}
+
+	dpy_event.events = EPOLLIN;
+	dpy_event.data.fd = dpy_fd;
+	if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, dpy_fd, &dpy_event)) {
+		fputs("Failed to add display file descriptor to epoll", stderr);
+		close(epoll_fd);
+		exit(1);
+	}
+
+	if (ipc_init(ipcsockpath, epoll_fd, ipccommands, LENGTH(ipccommands)) < 0) {
+		fputs("Failed to initialize IPC\n", stderr);
+	}
 }
 
 void
@@ -2522,10 +2648,18 @@ updatestatus(void)
 void
 updatetitle(Client *c)
 {
+	char oldname[sizeof(c->name)];
+	strcpy(oldname, c->name);
+
 	if (!gettextprop(c->win, netatom[NetWMName], c->name, sizeof c->name))
 		gettextprop(c->win, XA_WM_NAME, c->name, sizeof c->name);
 	if (c->name[0] == '\0') /* hack to mark broken clients */
 		strcpy(c->name, broken);
+
+	for (Monitor *m = mons; m; m = m->next) {
+		if (m->sel == c && strcmp(oldname, c->name) != 0)
+			ipc_focused_title_change_event(m->num, c->win, oldname, c->name);
+	}
 }
 
 void

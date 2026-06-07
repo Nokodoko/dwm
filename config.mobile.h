@@ -4,9 +4,10 @@
 #include <X11/XF86keysym.h>
 
 /* appearance */
-static const unsigned int borderpx  = 2;        /* border pixel of windows */
-static const unsigned int gappx     = 2;        /* gap pixel between windows */
-static const unsigned int snap      = 32;       /* snap pixel */
+static const unsigned int borderpx  = 3;        /* border pixel of windows (phyOS: 3) */
+static const unsigned int gappx     = 12;       /* gap pixel between windows (phyOS inner ~10-20) */
+static const unsigned int snap      = 25;       /* snap pixel (phyOS: 25) */
+static const int user_bh            = 34;       /* bar height; 0 = auto (font height + 2). phyOS uses 40. Set 0 to revert. */
 static const int showbar            = 1;        /* 0 means no bar */
 static const int topbar             = 1;        /* 0 means bottom bar */
 static const char *fonts[] = {"VictorMono Nerd Font Mono:style=Italic:size=11"};
@@ -16,7 +17,7 @@ static const char col_gray2[] = "#333333";
 static const char col_gray3[] = "#5F5F00";
 static const char col_gray4[] = "#00FF00";
 static const char col_cyan[] = "#000000";
-static const char col_lightblue[] = "#ADD8E6";
+static const char col_lightblue[] = "#96CDFB";
 static const char col_teal[] = "#0088AA";
 static const char col_green[] = "#00AA44";
 static const char col_purple[] = "#9932CC";
@@ -71,7 +72,7 @@ static const Rule rules[] = {
 	{"ssh-scratchpad",    NULL,     NULL,           SSH_SCRATCHPAD_TAG,    1,          -1,      0,          -1, -1,           NULL,        1200,   900},
 
 	/* --- Floating overlays (follow focus) --- */
-	{"kitty-lf",          NULL,     NULL,           0,                     1,          -1,      1,           1, SchemeOlr,    "lf",        1200,   900},
+	{"kitty-lf",          NULL,     NULL,           0,                     1,          -1,      1,           1, SchemeOlr,    "lf",        2200,   550},
 	{"kitty-lister",      NULL,     NULL,           0,                     1,          -1,      1,           1, SchemeOlr,    "lister",    1100,   650},
 	{"kitty-tabtiler",    NULL,     NULL,           0,                     1,          -1,      1,           1, SchemeOlr,    "tiles",     1200,   900},
 	{"gpu-select",        NULL,     NULL,           0,                     1,          -1,      1,           1, SchemeOlr,    "gpu",        800,   500},
@@ -145,6 +146,25 @@ static const Layout layouts[] = {
 	{ "[]=",      tile },    /* first entry is default */
 	{ "[M]",      monocle },
 	{ "><>",      NULL },    /* no layout function means floating behavior */
+};
+
+/* IPC */
+static const char *ipcsockpath = "/tmp/dwm.sock";
+static IPCCommand ipccommands[] = {
+  IPCCOMMAND(  view,                1,      {ARG_TYPE_UINT}   ),
+  IPCCOMMAND(  toggleview,          1,      {ARG_TYPE_UINT}   ),
+  IPCCOMMAND(  tag,                 1,      {ARG_TYPE_UINT}   ),
+  IPCCOMMAND(  toggletag,           1,      {ARG_TYPE_UINT}   ),
+  IPCCOMMAND(  tagmon,              1,      {ARG_TYPE_UINT}   ),
+  IPCCOMMAND(  focusmon,            1,      {ARG_TYPE_SINT}   ),
+  IPCCOMMAND(  focusstack,          1,      {ARG_TYPE_SINT}   ),
+  IPCCOMMAND(  zoom,                1,      {ARG_TYPE_NONE}   ),
+  IPCCOMMAND(  incnmaster,          1,      {ARG_TYPE_SINT}   ),
+  IPCCOMMAND(  killclient,          1,      {ARG_TYPE_SINT}   ),
+  IPCCOMMAND(  togglefloating,      1,      {ARG_TYPE_NONE}   ),
+  IPCCOMMAND(  setmfact,            1,      {ARG_TYPE_FLOAT}  ),
+  IPCCOMMAND(  setlayoutsafe,       1,      {ARG_TYPE_PTR}    ),
+  IPCCOMMAND(  quit,                1,      {ARG_TYPE_NONE}   )
 };
 
 /* key definitions */

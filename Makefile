@@ -6,7 +6,7 @@ include config.mk
 SRC = drw.c dwm.c util.c
 OBJ = ${SRC:.c=.o}
 
-all: dwm
+all: dwm dwm-msg
 
 .c.o:
 	${CC} -c ${CFLAGS} $<
@@ -19,8 +19,11 @@ config.h:
 dwm: ${OBJ}
 	${CC} -o $@ ${OBJ} ${LDFLAGS}
 
+dwm-msg: dwm-msg.o
+	${CC} -o $@ $< ${LDFLAGS}
+
 clean:
-	rm -f dwm ${OBJ} dwm-${VERSION}.tar.gz
+	rm -f dwm dwm-msg ${OBJ} dwm-${VERSION}.tar.gz
 
 dist: clean
 	mkdir -p dwm-${VERSION}
