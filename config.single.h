@@ -127,17 +127,18 @@ static const Rule rules[] = {
 
 /* default tags per monitor (index = monitor number) */
 static const unsigned int defaulttags[] = {
-    1 << 2,   /* mon 0 (DP-0, 144Hz):   tag 3 (>_)  */
-    1 << 0,   /* mon 1 (DP-2, 60Hz):    tag 1 (www) */
-    1 << 4,   /* mon 2 (DP-1-4, 240Hz): tag 5 (rkt) */
+    1 << 0,   /* mon 0 (single eDP-1):  tag 1 (www) */
 };
 
-/* tag-to-monitor map: which monitor owns each tag (index = tag index) */
-static const int tagmonmap[] = { 1, 1, 0, 0, 2, 2, 2, 0, 0 };
+/* tag-to-monitor map: which monitor owns each tag (index = tag index).
+ * Single-monitor build: ALL tags owned by monitor 0 so every tag is a plain,
+ * fully-switchable tag on eDP-1 (no cross-monitor redirection). The multi-
+ * monitor distribution lives in config.multi.h. */
+static const int tagmonmap[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 /*                                ^  ^  ^  ^  ^  ^  ^  ^  ^
  *                           tag: 1  2  3  4  5  6  7  8  9
  *                          icon: ww ch >_ tm rk cd gm sl mu
- *                           mon: 1  1  0  0  2  2  2  0  0  */
+ *                           mon: 0  0  0  0  0  0  0  0  0  */
 
 /* layout(s) */
 const float mfact     = 0.55; /* factor of master area size [0.05..0.95] */
