@@ -184,6 +184,7 @@ static IPCCommand ipccommands[] = {
 /* commands */
 static char dmenumon[2] = "0"; /* component of dmenucmd, single monitor */
 static const char *dmenucmd[] = { "/home/n0ko/scripts/lister.sh", NULL };
+static const char *mountcmd[] = { "/home/n0ko/scripts/lister.sh", "mount", NULL };
 static const char *termcmd[]  = { "kitty", NULL };
 static const char *lyxcmd[]  = { "kitty", "--", "lyx", NULL };
 static const char *killcmd[]  = { "killer.py", NULL };
@@ -237,7 +238,7 @@ static const Key keys[] = {
 	/* modifier                     key        function        argument */
 	{ Mod1Mask,                     XK_s,      togglescratch,  {.v = scratchpadcmd } },
 	{ Mod1Mask,                     XK_b,      togglescratch,  {.v = btopscratchpadcmd } },
-	{ Mod1Mask,                     XK_o,      togglescratch,  {.v = olrscratchpadcmd } },
+	/* Alt+o unbound 2026-07-10 (olr unused; Alt+o reserved for another app): { Mod1Mask, XK_o, togglescratch, {.v = olrscratchpadcmd } }, */
 	{ Mod1Mask,                     XK_a,      togglescratch,  {.v = aiscratchpadcmd } },
         { Mod1Mask,                     XK_r,      togglescratch,  {.v = steamscratchpadcmd } },
 	{ Mod1Mask|ShiftMask,           XK_s,      togglescratch,  {.v = sshscratchpadcmd } },
@@ -250,6 +251,7 @@ static const Key keys[] = {
 	{ MODKEY|ControlMask,           XK_r,      spawn,          {.v = restartdwm_base } },
 	{ MODKEY|ControlMask,           XK_u,      spawn,          {.v = lewislayoutcmd } },
 	{ MODKEY,                       XK_p,      spawn,          {.v = dmenucmd } },
+	{ MODKEY|ShiftMask,             XK_m,      spawn,          {.v = mountcmd } },
 	{ MODKEY,                       XK_x,      spawn,          {.v = lyxcmd } },
 	{ MODKEY|ShiftMask,             XK_x,      spawn,          {.v = killcmd } },
 	{ MODKEY|ShiftMask,             XK_c,      spawn,          {.v = cal } },
