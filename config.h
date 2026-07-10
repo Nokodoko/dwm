@@ -166,6 +166,7 @@ static const Layout layouts[] = {
 
 /* commands */
 static const char *listercmd[] = { "/home/n0ko/scripts/lister.sh", NULL };
+static const char *mountcmd[] = { "/home/n0ko/scripts/lister.sh", "mount", NULL };
 static const char *termcmd[]  = { "/home/n0ko/scripts/wezterm-egl-fix.sh", "start", "--always-new-process", NULL };
 static const char *lyxcmd[]  = { "/home/n0ko/scripts/wezterm-egl-fix.sh", "start", "--always-new-process", "--", "lyx", NULL };
 static const char *hb[]  = { "hb.sh", NULL };
@@ -211,7 +212,7 @@ static const Key keys[] = {
 	/* modifier                     key        function        argument */
 	{ Mod1Mask,                     XK_s,      togglescratch,  {.v = scratchpadcmd } },
 	{ Mod1Mask,                     XK_b,      togglescratch,  {.v = btopscratchpadcmd } },
-	{ Mod1Mask,                     XK_o,      togglescratch,  {.v = olrscratchpadcmd } },
+	/* Alt+o unbound 2026-07-10 (olr unused; Alt+o reserved for another app): { Mod1Mask, XK_o, togglescratch, {.v = olrscratchpadcmd } }, */
 	{ Mod1Mask,                     XK_a,      togglescratch,  {.v = aiscratchpadcmd } },
         { Mod1Mask,                     XK_r,      togglescratch,  {.v = steamscratchpadcmd } },
 	{ Mod1Mask|ShiftMask,           XK_s,      togglescratch,  {.v = sshscratchpadcmd } },
@@ -221,6 +222,7 @@ static const Key keys[] = {
 	{ MODKEY,                       XK_r,      spawn,          {.v = restartdwm } },
 	{ MODKEY|ShiftMask,             XK_r,      spawn,          {.v = restartdwm_wt } },
 	{ MODKEY,                       XK_p,      spawn,          {.v = listercmd } },
+	{ MODKEY|ShiftMask,             XK_m,      spawn,          {.v = mountcmd } },
 	{ MODKEY,                       XK_x,      spawn,          {.v = lyxcmd } },
 	{ MODKEY|ShiftMask,             XK_c,      spawn,          {.v = cal } },
 	{ MODKEY,                       XK_m,      spawn,          {.v = pavucontrol } },
