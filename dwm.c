@@ -201,6 +201,7 @@ static void focus(Client *c);
 static void focusin(XEvent *e);
 static void focusmon(const Arg *arg);
 static void focusstack(const Arg *arg);
+static void focuswin(const Arg *arg);
 static Atom getatomprop(Client *c, Atom prop);
 static int getrootptr(int *x, int *y);
 static int handlexevent(struct epoll_event *ev);
@@ -245,6 +246,7 @@ static void seturgent(Client *c, int urg);
 static void showhide(Client *c);
 static void sigstatusbar(const Arg *arg);
 static void spawn(const Arg *arg);
+static void spawnsafe(const Arg *arg);
 static void tag(const Arg *arg);
 static void tagmon(const Arg *arg);
 static void tile(Monitor *m);
@@ -1144,6 +1146,35 @@ focusstack(const Arg *arg)
 	if (c) {
 		focus(c);
 		restack(selmon);
+	}
+}
+
+/* Focus a client by its X window id, switching monitor and tag as needed.
+ * IPC clients address windows by the ids get_monitors reports and have no way
+ * to express the relative offset focusstack wants, so they need this. */
+void
+focuswin(const Arg *arg)
+{
+	Client *c;
+	Monitor *m;
+	Window w = (Window)arg->ui;
+
+	for (m = mons; m; m = m->next) {
+		for (c = m->clients; c; c = c->next) {
+			if (c->win != w)
+				continue;
+			if (m != selmon) {
+				unfocus(selmon->sel, 0);
+				selmon = m;
+			}
+			if (!ISVISIBLE(c)) {
+				const Arg ta = {.ui = c->tags};
+				view(&ta);
+			}
+			focus(c);
+			restack(m);
+			return;
+		}
 	}
 }
 
@@ -2191,6 +2222,43 @@ spawn(const Arg *arg)
 		execvp(((char **)arg->v)[0], (char **)arg->v);
 		die("dwm: execvp '%s' failed:", ((char **)arg->v)[0]);
 	}
+}
+
+/* IPC-safe spawn. arg->v is a command line string supplied by an IPC client.
+ *
+ * That input is untrusted: the agent driving this socket feeds window titles to
+ * a language model, and a window title is attacker-controlled (a web page sets
+ * its own). A prompt-injected model must not be able to exec whatever it likes,
+ * so argv[0] is checked against spawnallow[] and the line is split on
+ * whitespace with no shell involved -- ';', '|' and '$()' stay literal. */
+void
+spawnsafe(const Arg *arg)
+{
+	char buf[1024];
+	char *argv[64];
+	int argc = 0;
+	const char *cmd = (const char *)arg->v;
+	Arg a;
+
+	if (!cmd || strlen(cmd) >= sizeof buf)
+		return;
+	strcpy(buf, cmd);
+
+	for (char *tok = strtok(buf, " \t"); tok && argc < (int)LENGTH(argv) - 1;
+	     tok = strtok(NULL, " \t"))
+		argv[argc++] = tok;
+	argv[argc] = NULL;
+	if (!argc)
+		return;
+
+	for (int i = 0; i < (int)LENGTH(spawnallow); i++) {
+		if (!strcmp(argv[0], spawnallow[i])) {
+			a.v = argv;
+			spawn(&a);
+			return;
+		}
+	}
+	fprintf(stderr, "dwm: spawnsafe refused '%s': not in spawnallow\n", argv[0]);
 }
 
 void
