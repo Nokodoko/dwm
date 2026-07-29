@@ -169,7 +169,27 @@ static IPCCommand ipccommands[] = {
   IPCCOMMAND(  togglefloating,      1,      {ARG_TYPE_NONE}   ),
   IPCCOMMAND(  setmfact,            1,      {ARG_TYPE_FLOAT}  ),
   IPCCOMMAND(  setlayoutsafe,       1,      {ARG_TYPE_PTR}    ),
+  IPCCOMMAND(  focuswin,            1,      {ARG_TYPE_UINT}   ),
+  IPCCOMMAND(  spawnsafe,           1,      {ARG_TYPE_STR}    ),
   IPCCOMMAND(  quit,                1,      {ARG_TYPE_NONE}   )
+};
+
+/* Programs spawnsafe() may launch over IPC, matched against argv[0] exactly.
+ *
+ * The agent on the other end of the socket feeds window titles to a language
+ * model, and window titles are attacker-controlled -- a web page picks its own.
+ * This list is the boundary that keeps a prompt-injected model from execing
+ * anything it likes. Note there is no shell: arguments are passed through
+ * literally, so adding "sh", "bash" or "zsh" here would defeat the whole guard.
+ * Extend deliberately. */
+static const char *spawnallow[] = {
+	"/home/n0ko/scripts/wezterm-egl-fix.sh",
+	"/home/n0ko/scripts/lister.sh",
+	"/usr/local/bin/monty",
+	"wezterm",
+	"vivaldi-stable",
+	"btop",
+	"nvim",
 };
 
 /* key definitions */
@@ -210,7 +230,7 @@ static const char *yazi[]  = { "/home/n0ko/scripts/fm-launcher.sh", "yazi", NULL
 static const char *scratchpadcmd[] = {"/home/n0ko/scripts/wezterm-egl-fix.sh", "start", "--class", "term-scratchpad", "--always-new-process", NULL};
 static const char *btopscratchpadcmd[] = {"/home/n0ko/scripts/wezterm-egl-fix.sh", "start", "--class", "btop-scratchpad", "--always-new-process", "--", "btop", NULL};
 static const char *olrscratchpadcmd[] = {"/home/n0ko/scripts/wezterm-egl-fix.sh", "start", "--class", "olr-scratchpad", "--always-new-process", "--", "/usr/local/bin/olr", NULL};
-static const char *aiscratchpadcmd[] = {"/home/n0ko/scripts/wezterm-egl-fix.sh", "start", "--class", "ai-scratchpad", "--always-new-process", "--", "/home/n0ko/misc/hostlister.sh", NULL};
+static const char *aiscratchpadcmd[] = {"/home/n0ko/scripts/wezterm-egl-fix.sh", "start", "--class", "ai-scratchpad", "--always-new-process", "--", "/usr/local/bin/monty", NULL};
 static const char *steamscratchpadcmd[] = {"/home/n0ko/scripts/wezterm-egl-fix.sh", "start", "--class", "stm-scratchpad", "--always-new-process", "--", "/home/n0ko/scripts/steam_launcher.zsh", NULL};
 static const char *sshscratchpadcmd[] = {"/home/n0ko/scripts/wezterm-egl-fix.sh", "start", "--class", "ssh-scratchpad", "--always-new-process", "--", "ssh", "-t", "base", "zellij", "attach", "-c", "default", NULL};
 static const char *scrot_precision[] = { "/bin/sh", "-c", "scrot -s -e 'xclip -selection clipboard -t image/png -i $f && notify-send \"Screenshot Precision\" \"Copied to clipboard\"'", NULL };
