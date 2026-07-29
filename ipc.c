@@ -870,14 +870,22 @@ int
 ipc_drop_client(IPCClient *c)
 {
   int fd = c->fd;
+  struct epoll_event ev;
+
+  // Stop waking up to messages from this client.
+  //
+  // This MUST happen before close(). close() only drops the fd from the epoll
+  // set once the last reference to the underlying file description is gone, and
+  // a forked child holds a copy whenever a command spawns a program from inside
+  // an IPC handler. Deregistering afterwards fails with EBADF, leaving a stale
+  // entry whose eventual EPOLLHUP arrives on an unregistered fd -- which run()
+  // treats as fatal, so dwm exits and the session restarts.
+  epoll_ctl(epoll_fd, EPOLL_CTL_DEL, fd, &ev);
+
   shutdown(fd, SHUT_RDWR);
   int res = close(fd);
 
   if (res == 0) {
-    struct epoll_event ev;
-
-    // Stop waking up to messages from this client
-    epoll_ctl(epoll_fd, EPOLL_CTL_DEL, fd, &ev);
     ipc_list_remove_client(&ipc_clients, c);
 
     free(c->buffer);
