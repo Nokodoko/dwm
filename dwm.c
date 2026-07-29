@@ -1846,11 +1846,12 @@ run(void)
 					fprintf(stderr, "Error handling IPC event on fd %d\n", event_fd);
 				}
 			} else {
-				fprintf(stderr, "Got event from unknown fd %d, ptr %p, u32 %d, u64 %lu",
-						event_fd, events[i].data.ptr, events[i].data.u32,
-						events[i].data.u64);
-				fprintf(stderr, " with events %d\n", events[i].events);
-				return;
+				/* A stale event from an fd we no longer track must not take the
+				 * whole window manager down with it. Deregister it and carry on
+				 * -- returning here ends run() and kills the X session. */
+				fprintf(stderr, "Ignoring event from unknown fd %d with events %d\n",
+						event_fd, events[i].events);
+				epoll_ctl(epoll_fd, EPOLL_CTL_DEL, event_fd, NULL);
 			}
 		}
 	}
