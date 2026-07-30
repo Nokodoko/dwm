@@ -10,7 +10,9 @@ static const unsigned int snap      = 25;       /* snap pixel (phyOS: 25) */
 static const int user_bh            = 34;       /* bar height; 0 = auto (font height + 2). phyOS uses 40. Set 0 to revert. */
 static const int showbar            = 1;        /* 0 means no bar */
 static const int topbar             = 1;        /* 0 means bottom bar */
-static const char *fonts[] = {"VictorMono Nerd Font Mono:style=Italic:size=11"};
+/* size 9: kept in sync with config.single.h -- see the ColPx note there.
+ * A config switch must not silently change the bar's column width. */
+static const char *fonts[] = {"VictorMono Nerd Font Mono:style=Italic:size=9"};
 static const char dmenufont[] = "VictorMono Nerd Font Mono:style=Italic:size=11";
 static const char col_gray1[] = "#000000";
 static const char col_gray2[] = "#333333";

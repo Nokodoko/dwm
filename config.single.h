@@ -9,7 +9,13 @@ static const unsigned int snap      = 25;       /* snap pixel (phyOS: 25) */
 static const int user_bh            = 34;       /* bar height; 0 = auto (font height + 2). phyOS uses 40. Set 0 to revert. */
 static const int showbar            = 1;        /* 0 means no bar */
 static const int topbar             = 1;        /* 0 means bottom bar */
-static const char *fonts[] = {"VictorMono Nerd Font Mono:style=Italic:size=11"};
+/* size 9: 7px column advance, lrpad 18 (measured via XftTextExtentsUtf8).
+ * Lifts the bar from 240 to 274 columns at 1920 and narrows each icon tag
+ * from 29px to 25px.
+ * NOTE: dwmblocks notif/internal/render.ColPx is derived from this value.
+ * Changing the size means re-measuring and updating ColPx, or the
+ * notification field is budgeted against the wrong column width. */
+static const char *fonts[] = {"VictorMono Nerd Font Mono:style=Italic:size=9"};
 static const char col_gray1[] = "#000000";
 static const char col_gray2[] = "#333333";
 static const char col_gray3[] = "#5F5F00";
