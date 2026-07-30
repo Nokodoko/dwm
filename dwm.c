@@ -517,10 +517,18 @@ buttonpress(XEvent *e)
 		focus(NULL);
 	}
 	if (ev->window == selmon->barwin) {
+		/* Vacant tags are not drawn (see drawbar); they must therefore
+		 * reserve no click width either, or every tag click lands on the
+		 * wrong index. This predicate MUST stay identical to drawbar's. */
+		unsigned int occ = 0;
+		for (c = selmon->clients; c; c = c->next)
+			occ |= c->tags;
 		i = x = 0;
-		do
+		do {
+			if (!(occ & 1 << i || selmon->tagset[selmon->seltags] & 1 << i))
+				continue;
 			x += TEXTW(tags[i]);
-		while (ev->x >= x && ++i < LENGTH(tags));
+		} while (ev->x >= x && ++i < LENGTH(tags));
 		if (i < LENGTH(tags)) {
 			click = ClkTagBar;
 			arg.ui = 1 << i;
@@ -966,13 +974,16 @@ drawbar(Monitor *m)
 	}
 	x = 0;
 	for (i = 0; i < LENGTH(tags); i++) {
+		/* Hide vacant tags: draw a tag only if it holds a client or is
+		 * selected. Occupancy is now implied by presence, so the old
+		 * drw_rect() indicator is redundant and has been dropped.
+		 * buttonpress() MUST apply the identical predicate or tag
+		 * clicks map to the wrong index. */
+		if (!(occ & 1 << i || m->tagset[m->seltags] & 1 << i))
+			continue;
 		w = TEXTW(tags[i]);
 		drw_setscheme(drw, scheme[m->tagset[m->seltags] & 1 << i ? SchemeSel : SchemeNorm]);
 		drw_text(drw, x, 0, w, bh, lrpad / 2, tags[i], urg & 1 << i);
-		if (occ & 1 << i)
-			drw_rect(drw, x + boxs, boxs, boxw, boxw,
-				m == selmon && selmon->sel && selmon->sel->tags & 1 << i,
-				urg & 1 << i);
 		x += w;
 	}
 	w = TEXTW(m->ltsymbol);
