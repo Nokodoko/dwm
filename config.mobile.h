@@ -192,7 +192,9 @@ static const char *lyxcmd[]  = { "kitty", "--", "lyx", NULL };
 static const char *killcmd[]  = { "killer.py", NULL };
 static const char *pass[]  = { "pass.py", NULL };
 static const char *wificmd[]  = { "wifi.py", NULL };
-static const char *hb[]  = { "hb.sh", NULL };
+/* Super+Ctrl+Right: notification link picker. See config.single.h for why
+ * hb.sh was replaced and why the path is absolute. */
+static const char *hb[]  = { "/home/n0ko/.local/bin/statusbar/notif-open", NULL };
 static const char *lb[]  = { "lb.sh", NULL };
 static const char *pavucontrol[]  = { "pavucontrol", NULL };
 static const char *dhp[]  = { "dhp.zsh", NULL };

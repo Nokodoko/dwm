@@ -221,7 +221,12 @@ static const char *listercmd[] = { "/home/n0ko/scripts/lister.sh", NULL };
 static const char *mountcmd[] = { "/home/n0ko/scripts/lister.sh", "mount", NULL };
 static const char *termcmd[]  = { "/home/n0ko/scripts/wezterm-egl-fix.sh", "start", "--always-new-process", NULL };
 static const char *lyxcmd[]  = { "/home/n0ko/scripts/wezterm-egl-fix.sh", "start", "--always-new-process", "--", "lyx", NULL };
-static const char *hb[]  = { "hb.sh", NULL };
+/* Super+Ctrl+Right: follow a link from a recent notification.
+ * Previously pointed at hb.sh, which no longer exists anywhere on the system,
+ * so the bind had been silently spawning a missing binary.
+ * Absolute path: dwm's PATH contains ~/.local/bin but NOT the statusbar/
+ * subdirectory (.xinitrc scopes that PATH to the dwmblocks invocation only). */
+static const char *hb[]  = { "/home/n0ko/.local/bin/statusbar/notif-open", NULL };
 static const char *lb[]  = { "lb.sh", NULL };
 static const char *pavucontrol[]  = { "pavucontrol", NULL };
 static const char *dhp[]  = { "dhp.zsh", NULL };
