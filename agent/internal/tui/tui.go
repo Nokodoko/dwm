@@ -37,6 +37,14 @@ const (
 type entry struct {
 	role role
 	text string
+
+	// Cached glamour output. Rendering markdown is expensive enough that
+	// redoing it for every message on every keystroke is what makes a long
+	// transcript feel like it has hung; the cache makes it once per message.
+	// renderWidth records the width it was built at, so a resize invalidates
+	// it rather than leaving text wrapped for the old geometry.
+	rendered    string
+	renderWidth int
 }
 
 // Model is the bubbletea model.
@@ -77,6 +85,12 @@ type turnResult struct {
 type bangResult struct {
 	cmd string
 	out string
+}
+
+// skillResult carries the output of a filesystem skill run as /<slug>.
+type skillResult struct {
+	label string
+	out   string
 }
 
 // New builds the TUI.
@@ -161,6 +175,20 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.vp.GotoBottom()
 		return m, nil
 
+	case skillResult:
+		m.busy = false
+		m.status = "ready"
+		m.push(roleTool, msg.label+"\n"+msg.out)
+		// Recorded as conversation so a follow-up ("why did that fail?") has
+		// the invocation and its output already in context.
+		m.history = append(m.history, llm.Message{
+			Role:    llm.RoleUser,
+			Content: fmt.Sprintf("I ran the %s skill myself. Its output was:\n%s", msg.label, msg.out),
+		})
+		m.renderTranscript()
+		m.vp.GotoBottom()
+		return m, nil
+
 	case bangResult:
 		m.busy = false
 		m.status = "ready"
@@ -206,7 +234,28 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case tea.KeyCtrlL:
 			m.transcript = nil
 			m.renderTranscript()
-			return m, nil
+			// The viewport keeps its scroll offset across SetContent, so after
+			// clearing a transcript taller than the window it would sit past
+			// the end of the new (empty) content and show nothing.
+			m.vp.GotoTop()
+			// tea.ClearScreen forces a full repaint. Without it, replacing a
+			// frame much taller than the window -- the state a big `!ls` leaves
+			// behind -- leaves the alt-screen holding stale rows that the
+			// shorter frame never overwrites, which reads as a blank or frozen
+			// client. It also makes Ctrl+L do what /help has always claimed:
+			// clear the screen, not just the transcript.
+			return m, tea.ClearScreen
+		// Ctrl+G hands the prompt to $EDITOR from ANY mode. `v` does the same
+		// but only in normal mode, which means the escape is unavailable
+		// exactly when it is most wanted -- part-way through typing a long
+		// prompt in insert mode. Handled here, above the mode dispatch, so
+		// insert mode cannot swallow it as literal input.
+		case tea.KeyCtrlG:
+			if m.busy {
+				return m, nil
+			}
+			return m, m.openEditor()
+
 		case tea.KeyPgUp:
 			m.vp.HalfPageUp()
 			return m, nil
@@ -273,6 +322,27 @@ func (m Model) runTurn() tea.Cmd {
 //
 // The point is immediacy: when you already know the command, round-tripping it
 // through an LLM is slower and can rewrite what you asked for.
+// runSkill dispatches a filesystem skill invoked as a slash command.
+//
+// It runs off the update loop like bang() does: a display switch restarts five
+// programs and sleeps between them, so running it inline would freeze the TUI
+// for the duration and make a working switch look like a hang.
+func (m Model) runSkill(fsk skills.FSSkill, label string, args json.RawMessage) (tea.Model, tea.Cmd) {
+	label = strings.TrimSpace(label)
+	m.push(roleUser, label)
+	m.busy = true
+	m.status = "running " + fsk.Slug
+	m.renderTranscript()
+	m.vp.GotoBottom()
+
+	sk, conn, name := m.skills, m.conn, fsk.Name
+	return m, tea.Batch(m.sp.Tick, func() tea.Msg {
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
+		defer cancel()
+		return skillResult{label: label, out: sk.Dispatch(ctx, conn, name, args)}
+	})
+}
+
 func (m Model) bang(line string) (tea.Model, tea.Cmd) {
 	cmdline := strings.TrimSpace(strings.TrimPrefix(line, "!"))
 	if cmdline == "" {
@@ -305,11 +375,11 @@ func toEntries(steps []agentloop.Step) []entry {
 	for _, s := range steps {
 		switch s.Kind {
 		case agentloop.KindTool:
-			out = append(out, entry{roleTool, s.Text})
+			out = append(out, entry{role: roleTool, text: s.Text})
 		case agentloop.KindError:
-			out = append(out, entry{roleError, s.Text})
+			out = append(out, entry{role: roleError, text: s.Text})
 		default:
-			out = append(out, entry{roleAgent, s.Text})
+			out = append(out, entry{role: roleAgent, text: s.Text})
 		}
 	}
 	return out
@@ -323,12 +393,20 @@ func (m Model) command(line string) (tea.Model, tea.Cmd) {
 
 	switch cmd {
 	case "/help":
+		// Filesystem skills are listed live rather than hardcoded: they are
+		// whatever is in .agents/skills right now, and a help text that named a
+		// fixed set would go stale the first time one was added.
+		skillLine := ""
+		if names := m.skills.SlashNames(); len(names) > 0 {
+			skillLine = strings.Join(names, ", ") + " — skills from .agents/skills (flags: -r, -m, --dry-run)\n"
+		}
 		m.push(roleSystem, "monty answers general questions; window management is\n"+
 			"always available, just ask in plain language.\n\n"+
 			"!<command> — run it in zsh immediately, without the model\n"+
 			"/model [name] — list or switch backend\n"+
 			"/dwm, /windows — show the live window census\n"+
-			"/skills — list callable skills\n"+
+			skillLine+
+			"/skills [-l|-v] — list callable skills; -l adds descriptions, -v adds arguments\n"+
 			"/clear — reset the conversation\n"+
 			"/quit — close\n\n"+
 			"Ctrl+L clears the screen · PgUp/PgDn scroll · Ctrl+C quits\n\n"+
@@ -336,7 +414,9 @@ func (m Model) command(line string) (tea.Model, tea.Cmd) {
 			"  motions   h l j k · w b e · 0 ^ $ · gg G\n"+
 			"  edits     x X · D C · s S · dw db dd d$ d0 · cw cb cc c$ · diw ciw\n"+
 			"  insert    i a I A o O\n"+
-			"  v         open the prompt in $EDITOR, :wq to come back")
+			"  v         open the prompt in $EDITOR, :wq to come back\n\n"+
+			"Ctrl+G opens $EDITOR from any mode, seeded with whatever is already\n"+
+			"in the prompt. Save and quit and the buffer replaces the prompt.")
 
 	case "/model":
 		if arg == "" {
@@ -366,8 +446,23 @@ func (m Model) command(line string) (tea.Model, tea.Cmd) {
 		}
 		m.push(roleTool, "window census\n"+snap)
 
-	case "/skills":
-		m.push(roleSystem, "skills: "+strings.Join(m.skills.Names(), ", "))
+	// Bare /skills stays a one-line roster; -l expands it with each skill's
+	// description and origin, which is what you want when a markdown skill in
+	// .agents/skills is not behaving and you need to know which file defined it.
+	// /skill is accepted alongside /skills: the singular is what gets typed
+	// about half the time, and failing it as "unknown command" while the
+	// plural works is a pointless papercut.
+	case "/skills", "/skill":
+		switch arg {
+		case "":
+			m.push(roleSystem, "skills: "+strings.Join(m.skills.Names(), ", "))
+		case "-l", "--list":
+			m.push(roleSystem, m.skills.Describe(false))
+		case "-lv", "-v", "--verbose":
+			m.push(roleSystem, m.skills.Describe(true))
+		default:
+			m.push(roleError, fmt.Sprintf("unknown flag %q; try /skills, /skills -l, or /skills -v", arg))
+		}
 
 	case "/clear":
 		m.history = []llm.Message{{Role: llm.RoleSystem, Content: agentloop.SystemPrompt}}
@@ -378,7 +473,23 @@ func (m Model) command(line string) (tea.Model, tea.Cmd) {
 		return m, tea.Quit
 
 	default:
-		m.push(roleError, "unknown command "+cmd+" — /help for the list")
+		// Filesystem skills are reachable as /<slug>, so `/edp` runs the skill
+		// in .agents/skills/edp. Without this they were callable only by the
+		// model choosing them from prose, which is not what a command is for.
+		if fsk, ok := m.skills.LookupSlash(cmd); ok {
+			args, err := skills.ParseSlashArgs(fsk, arg)
+			if err != nil {
+				m.push(roleError, err.Error())
+				break
+			}
+			return m.runSkill(fsk, cmd+" "+arg, args)
+		}
+		known := m.skills.SlashNames()
+		if len(known) > 0 {
+			m.push(roleError, "unknown command "+cmd+" — /help for the list, or: "+strings.Join(known, " "))
+		} else {
+			m.push(roleError, "unknown command "+cmd+" — /help for the list")
+		}
 	}
 
 	m.renderTranscript()
@@ -416,7 +527,8 @@ func (m *Model) layout() {
 // renderTranscript rebuilds the viewport content.
 func (m *Model) renderTranscript() {
 	var sb strings.Builder
-	for i, e := range m.transcript {
+	for i := range m.transcript {
+		e := &m.transcript[i]
 		if i > 0 {
 			sb.WriteString("\n")
 		}
@@ -426,7 +538,11 @@ func (m *Model) renderTranscript() {
 			sb.WriteString(m.st.UserText.Render(e.text) + "\n")
 		case roleAgent:
 			sb.WriteString(m.st.AgentLabel.Render("☉ agent") + "\n")
-			sb.WriteString(m.markdown(e.text))
+			if e.rendered == "" || e.renderWidth != m.vp.Width {
+				e.rendered = m.markdown(e.text)
+				e.renderWidth = m.vp.Width
+			}
+			sb.WriteString(e.rendered)
 		case roleTool:
 			sb.WriteString(m.st.Tool.Render(e.text) + "\n")
 		case roleSystem:
@@ -472,7 +588,7 @@ func (m Model) View() string {
 	hint := m.st.Status.Render("  enter send · /help · ctrl+c quit")
 	if m.mode == modeNormal {
 		badge = m.st.ModeNormal.Render(m.mode.String())
-		hint = m.st.Status.Render("  i insert · v editor · enter send · ctrl+c quit")
+		hint = m.st.Status.Render("  i insert · ctrl+g editor · enter send · ctrl+c quit")
 	}
 
 	return lipgloss.JoinVertical(lipgloss.Left,

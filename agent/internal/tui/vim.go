@@ -16,6 +16,8 @@ package tui
 import (
 	"os"
 	"os/exec"
+	"path/filepath"
+	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -234,7 +236,30 @@ func (m *Model) openEditor() tea.Cmd {
 		return func() tea.Msg { return editorDone{err: werr} }
 	}
 
-	return tea.ExecProcess(exec.Command(editor, path), func(err error) tea.Msg {
+	return tea.ExecProcess(exec.Command(editor, editorArgs(editor, path)...), func(err error) tea.Msg {
 		return editorDone{path: path, err: err}
 	})
+}
+
+// editorArgs builds the editor's argument list.
+//
+// For the vi family it prepends `--cmd 'set t_RB= t_RF='`, which clears the
+// termcap entries vim uses to query the terminal's background (OSC 11) and
+// foreground (OSC 10) colours. Without it the terminal's reply arrives on stdin
+// after the editor exits and Bubble Tea reads it as input -- which, now that the
+// editor is bound to a control key, can re-fire the binding and reopen the
+// editor immediately. --cmd runs before the user's config, so it cannot be
+// re-enabled behind our back, and the rest of the user's nvim setup still loads
+// normally.
+//
+// Borrowed from icarus (internal/cli/repl/commands.go:editorArgs), which hit
+// exactly this problem first.
+func editorArgs(editor, path string) []string {
+	base := strings.ToLower(filepath.Base(editor))
+	base = strings.TrimSuffix(base, ".exe")
+	switch base {
+	case "nvim", "vim", "vi":
+		return []string{"--cmd", "set t_RB= t_RF=", path}
+	}
+	return []string{path}
 }
