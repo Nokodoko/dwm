@@ -69,6 +69,15 @@ func run(socket, backend, ask string) error {
 	client := llm.New(chosen)
 	sk := skills.New()
 
+	// Filesystem skills load after the builtins so AddFromDirs can refuse any
+	// markdown skill that would shadow one. Load failures are reported but not
+	// fatal: a typo in one SKILL.md should cost that skill, not the session.
+	if _, errs := sk.AddFromDirs(skills.DefaultSearchPath()); len(errs) > 0 {
+		for _, e := range errs {
+			fmt.Fprintln(os.Stderr, "monty: skill:", e)
+		}
+	}
+
 	if ask != "" {
 		return runHeadless(conn, client, sk, ask)
 	}

@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"sort"
 	"strings"
 	"time"
 
@@ -30,6 +31,7 @@ type Skill struct {
 type Set struct {
 	skills map[string]Skill
 	order  []string
+	fs     []FSSkill // filesystem-loaded subset, for /skills --list
 }
 
 // obj is shorthand for a JSON Schema fragment.
@@ -362,6 +364,71 @@ func (s *Set) Tools() []llm.Tool {
 
 // Names lists skill names in registration order.
 func (s *Set) Names() []string { return append([]string(nil), s.order...) }
+
+// FS lists the filesystem-loaded skills, in load order.
+func (s *Set) FS() []FSSkill { return append([]FSSkill(nil), s.fs...) }
+
+// Describe renders the skill roster for `/skills --list`.
+//
+// Filesystem skills are marked with their source file: when a skill misbehaves
+// the first question is always which file defined it, and a builtin and a
+// markdown skill are debugged in completely different places.
+func (s *Set) Describe(verbose bool) string {
+	fsBy := make(map[string]FSSkill, len(s.fs))
+	for _, f := range s.fs {
+		fsBy[f.Name] = f
+	}
+
+	var sb strings.Builder
+	fmt.Fprintf(&sb, "%d skills (%d builtin, %d from .agents/skills)\n",
+		len(s.order), len(s.order)-len(s.fs), len(s.fs))
+
+	for _, n := range s.order {
+		sk := s.skills[n]
+		f, isFS := fsBy[n]
+
+		origin := "builtin"
+		if isFS {
+			origin = f.Path
+		}
+		fmt.Fprintf(&sb, "\n  %-24s %s\n", n, origin)
+
+		desc := sk.Tool.Function.Description
+		if !verbose {
+			// One line is enough to pick a skill; the full description is
+			// several sentences of model-facing guidance.
+			if i := strings.IndexAny(desc, ".\n"); i >= 0 {
+				desc = desc[:i+1]
+			}
+		}
+		fmt.Fprintf(&sb, "    %s\n", strings.TrimSpace(desc))
+
+		if params, ok := sk.Tool.Function.Parameters.(obj); ok && verbose {
+			if props, ok := params["properties"].(obj); ok && len(props) > 0 {
+				required := map[string]bool{}
+				if req, ok := params["required"].([]string); ok {
+					for _, r := range req {
+						required[r] = true
+					}
+				}
+				names := make([]string, 0, len(props))
+				for k := range props {
+					names = append(names, k)
+				}
+				sort.Strings(names)
+				for _, k := range names {
+					mark := ""
+					if required[k] {
+						mark = " (required)"
+					}
+					d, _ := props[k].(obj)
+					fmt.Fprintf(&sb, "      - %s: %v%s\n", k, d["description"], mark)
+				}
+			}
+		}
+	}
+	return sb.String()
+}
 
 // Dispatch runs a named skill. An unknown name is returned as an error string
 // for the model to read rather than a Go error, so it can correct itself.
